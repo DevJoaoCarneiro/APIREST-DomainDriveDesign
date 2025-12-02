@@ -1,9 +1,6 @@
 ﻿using Domain.entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace Infrastructure.Context
 {
@@ -20,7 +17,7 @@ namespace Infrastructure.Context
         {
 
             base.OnModelCreating(modelBuilder);
-			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-		}
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        }
     }
 }

@@ -1,15 +1,11 @@
 ﻿using Application.Interfaces;
 using Application.Request;
-using Application.Response;
-using Application.Service;
-using Domain.entities;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.controller
 {
     [ApiController]
-    [Route("api/society")]
+    [Route("api/users")]
     public class UserController : ControllerBase
     {
 
@@ -21,7 +17,7 @@ namespace Api.controller
         }
 
         [HttpPost]
-        public async Task<IActionResult> registerUser([FromBody] UserRequestDTO userRequestDTO)
+        public async Task<IActionResult> RegisterUser([FromBody] UserRequestDTO userRequestDTO)
         {
 
             try
@@ -46,7 +42,7 @@ namespace Api.controller
         }
 
         [HttpGet]
-        public async Task<IActionResult> getAllUsers()
+        public async Task<IActionResult> GetAllUsers()
         {
             try
             {
@@ -68,6 +64,8 @@ namespace Api.controller
                 });
             }
         }
+
+        
 
     }
 }

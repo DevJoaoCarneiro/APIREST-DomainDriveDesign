@@ -11,5 +11,7 @@ namespace Domain.Repository
 
         Task<IEnumerable<User>> GetAllAsync();
 
+        Task<User> GetByEmailAsync(string email);
+
     }
 }
