@@ -9,7 +9,7 @@ namespace Application.Validators
         public LoginUserValidator()
         {
 
-            RuleFor(x => x.Email)
+            RuleFor(x => x.Mail)
                 .NotEmpty().WithMessage("Email is required.")
                 .EmailAddress().WithMessage("Invalid email format.");
 

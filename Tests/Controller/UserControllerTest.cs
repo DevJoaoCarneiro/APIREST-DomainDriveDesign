@@ -25,7 +25,6 @@ namespace Tests.Controller
         [Fact]
         public async void Should_Create_User_Correctly_Via_Controller()
         {
-            //Arrange
             var userRequest = new UserRequestDTO
             {
                 Name = "Marcia Da Cruz",
@@ -47,12 +46,12 @@ namespace Tests.Controller
 
             _userServices.createUser(Arg.Any<UserRequestDTO>()).Returns(userResponse);
 
-            //Act
-            var response = await _controller.registerUser(userRequest);
+
+            var response = await _controller.RegisterUser(userRequest);
             var okResult = Assert.IsType<OkObjectResult>(response);
             var resultValue = Assert.IsType<UserResponseDTO>(okResult.Value);
 
-            //Assert
+
             Assert.NotNull(response);
             Assert.Equal(200, okResult.StatusCode);
             Assert.Equal(userResponse.Message, resultValue.Message);
@@ -65,15 +64,15 @@ namespace Tests.Controller
         [Fact]
         public async void Should_Return_BadRequest_WhenError()
         {
-            //Arrange
+
             var userRequest = new UserRequestDTO();
 
             _userServices.createUser(userRequest).ThrowsAsync(new Exception("Error"));
 
-            //Act
-            var result = await _controller.registerUser(userRequest);
 
-            //Assert
+            var result = await _controller.RegisterUser(userRequest);
+
+
             var StatusCodeResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, StatusCodeResult.StatusCode);
 
@@ -82,7 +81,7 @@ namespace Tests.Controller
         [Fact]
         public async void Should_Return_Invalid_Argument_When_Request_Is_null()
         {
-            //Arrange
+
             var request = new UserRequestDTO();
 
             var serviceResponse = new UserResponseDTO
@@ -93,10 +92,10 @@ namespace Tests.Controller
             };
 
             _userServices.createUser(Arg.Any<UserRequestDTO>()).Returns(serviceResponse);
-            //Act
-            var response = await _controller.registerUser(request);
 
-            //Assert
+            var response = await _controller.RegisterUser(request);
+
+
             var badRequest = Assert.IsType<BadRequestObjectResult>(response);
             var responseValue = Assert.IsType<UserResponseDTO>(badRequest.Value);
             Assert.Equal(400, badRequest.StatusCode);
@@ -107,7 +106,7 @@ namespace Tests.Controller
         [Fact]
         public async void Should_Get_All_Users_When_Is_Not_Empty()
         {
-            //Arrange
+
             var userList = new List<UserDataList>{
                new UserDataList
                 {
@@ -130,12 +129,11 @@ namespace Tests.Controller
 
             _userServices.findAllUser().Returns(userResponse);
 
-            //Act
-            var response = await _controller.getAllUsers();
+            var response = await _controller.GetAllUsers();
             var okResult = Assert.IsType<OkObjectResult>(response);
             var resultValue = Assert.IsType<UserListResponseDTO>(okResult.Value);
 
-            //Assert
+
             Assert.Equal(200, okResult.StatusCode);
             Assert.Equal("Success", resultValue.Status);
             Assert.Equal("Users retrieved successfully", resultValue.Message);
@@ -147,7 +145,7 @@ namespace Tests.Controller
         [Fact]
         public async void Should_Return_Not_Found_When_List_Is_Empty()
         {
-            //Arrange
+
             var userList = new List<UserDataList>();
 
             var userResponse = new UserListResponseDTO
@@ -159,8 +157,8 @@ namespace Tests.Controller
 
             _userServices.findAllUser().Returns(userResponse);
 
-            //Act
-            var response = await _controller.getAllUsers();
+
+            var response = await _controller.GetAllUsers();
 
             var notFound = Assert.IsType<NotFoundObjectResult>(response);
             var resultValue = Assert.IsType<UserListResponseDTO>(notFound.Value);
@@ -176,14 +174,14 @@ namespace Tests.Controller
         [Fact]
         public async void Should_Return_500_When_Exception_Is_Thrown()
         {
-            // Arrange
+
             _userServices.findAllUser()
                          .ThrowsAsync(new Exception("Db Error"));
 
-            // Act
-            var response = await _controller.getAllUsers();
 
-            // Assert
+            var response = await _controller.GetAllUsers();
+
+
             var result = Assert.IsType<ObjectResult>(response);
 
             Assert.Equal(500, result.StatusCode);

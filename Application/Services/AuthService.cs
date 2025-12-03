@@ -18,34 +18,47 @@ namespace Application.Services
 
         public async Task<LoginResponseDTO> AuthenticateLogin(LoginRequestDTO loginRequestDTO)
         {
-            var result = await _userRepository.GetByEmailAsync(loginRequestDTO.Email);
+            try
+            {
+                var result = await _userRepository.GetByEmailAsync(loginRequestDTO.Mail);
 
-            if(result == null)
+                if (result == null)
+                {
+                    return new LoginResponseDTO
+                    {
+                        Message = "User not found",
+                        Status = "invalid_credentials"
+                    };
+                }
+
+                if (!BCrypt.Net.BCrypt.Verify(loginRequestDTO.Password, result.PasswordHash))
+                {
+                    return new LoginResponseDTO
+                    {
+                        Message = "Invalid password",
+                        Status = "invalid_credentials"
+                    };
+                }
+
+                var token = _tokenService.GenerateToken(result);
+
+                return new LoginResponseDTO
+                {
+                    Message = "Login successful",
+                    Status = "Success",
+                    Token = token
+                };
+            }
+            catch (Exception)
             {
                 return new LoginResponseDTO
                 {
-                    Message = "User not found",
-                    Status = "invalid_credentials"
+                    Message = "Internal Error",
+                    Status = "error",
+                    Token = ""
                 };
             }
-
-            if(!BCrypt.Net.BCrypt.Verify(loginRequestDTO.Password, result.PasswordHash))
-            {
-                return new LoginResponseDTO
-                {
-                    Message = "Invalid password",
-                    Status = "invalid_credentials"
-                };
-            }
-
-           var token = _tokenService.GenerateToken(result);
-
-            return new LoginResponseDTO
-            {
-                Message = "Login successful",
-                Status = "Success",
-                Token = token
-            };
+            
         }
     }
 }
