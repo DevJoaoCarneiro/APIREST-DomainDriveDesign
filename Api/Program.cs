@@ -1,8 +1,10 @@
 using Application.Interfaces;
 using Application.Service;
+using Application.Services;
 using Domain.Interfaces;
 using Domain.Repository;
 using Infrastructure.Context;
+using Infrastructure.Provider;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +27,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUserServices, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISecurityService, BCryptoSecurityService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, JwtTokenProvider>();
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>

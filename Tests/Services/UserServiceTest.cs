@@ -25,7 +25,6 @@ public class UserServiceTest
     [Fact]
     public async void Should_Create_New_User_Corretly()
     {
-        //Arrange
         var request = new UserRequestDTO
         {
             Name = "Joao Victor",
@@ -36,11 +35,9 @@ public class UserServiceTest
         var PasswordHashMock = "HIE2233";
         _userServices.HashPassword(request.password).Returns(PasswordHashMock);
 
-        //Act
 
         var result = await _service.createUser(request);
 
-        //Assert
         Assert.Equal("User created successfully", result.Message);
         Assert.Equal("Success", result.Status);
         Assert.Equal(request.Name, result.Data.Name);
@@ -51,13 +48,10 @@ public class UserServiceTest
     [Fact]
     public async Task Should_Return_Invalid_Argument_When_Request_Is_Null()
     {
-        //Arrange
         UserRequestDTO? request = null;
 
-        //Act
         var result = await _service.createUser(request);
 
-        //Assert
         Assert.Equal("Parameters is empty or null", result.Message);
         Assert.Equal("invalid_argument", result.Status);
         Assert.Null(result.Data);
@@ -66,7 +60,7 @@ public class UserServiceTest
     [Fact]
     public async Task CreateUser_WhenRepositoryThrowsException_ReturnsErrorResponse()
     {
-        //Arrange
+
         var request = new UserRequestDTO
         {
             Name = "Joao Victor",
@@ -80,10 +74,8 @@ public class UserServiceTest
         _userRepository.AddAsync(Arg.Any<Domain.entities.User>())
                        .ThrowsAsync(new Exception("DB error"));
 
-        // Act
         var result = await _service.createUser(request);
 
-        // Assert
         Assert.Equal("error", result.Status);
         Assert.Null(result.Data);
 
@@ -92,7 +84,6 @@ public class UserServiceTest
     [Fact]
     public async Task Should_Return_All_Users_Corretly()
     {
-        //Arrange
         var userList = new List<User>
         {
             new User("Joao", "joao@gmail.com", "123#@$"),
@@ -102,11 +93,9 @@ public class UserServiceTest
         _userRepository.GetAllAsync()
                        .Returns(userList);
 
-        //Act
 
         var result = await _service.findAllUser();
 
-        //Assert
         Assert.Equal("Users retrieved successfully", result.Message);
         Assert.Equal("Success", result.Status);
         Assert.Equal("Joao", result.Data[0].Name);
@@ -118,7 +107,6 @@ public class UserServiceTest
     [Fact]
     public async void Should_Return_BadRequest_WhenError()
     {
-        //Arrange
         var userList = new List<User>
             {
                 new User("Joao", "joao@gmail.com", "123#@$"),
@@ -127,10 +115,8 @@ public class UserServiceTest
 
         _userRepository.GetAllAsync()
                        .ThrowsAsync(new Exception("DB error"));
-        //Act
         var result = await _service.findAllUser();
 
-        //Assert
         Assert.Equal("error", result.Status);
         Assert.Equal("An error occurred while retrieving users", result.Message);
 
@@ -138,15 +124,12 @@ public class UserServiceTest
     [Fact]
     public async void Should_Return_Empty_List_When_No_Users_Found()
     {
-        //Arrange
         var userList = new List<User>();
 
         _userRepository.GetAllAsync()
                        .Returns(new List<User>());
-        //Act
         var result = await _service.findAllUser();
 
-        //Assert
         Assert.Equal("No users found", result.Message);
         Assert.Equal("not_found", result.Status);
         Assert.Empty(result.Data);
