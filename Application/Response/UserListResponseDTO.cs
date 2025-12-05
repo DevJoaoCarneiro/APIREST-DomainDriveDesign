@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Application.Request;
+using Domain.Entities.Embeded;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -18,9 +20,15 @@ namespace Application.Response
 
     public class UserDataList
     {
+        [JsonPropertyName("UserId")]
+        public Guid UserId { get; set; }
+
         [JsonPropertyName("Name")]
         public string Name { get; set; } = string.Empty;
         [JsonPropertyName("Mail")]
         public string Mail { get; set; } = string.Empty;
+
+        [JsonPropertyName("Address")]
+        public AddressResponseDTO UserAddress { get; set; }
     }
 }

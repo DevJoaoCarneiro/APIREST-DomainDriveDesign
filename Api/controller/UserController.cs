@@ -65,7 +65,29 @@ namespace Api.controller
             }
         }
 
-        
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUserById(Guid userId)
+        {
+            try
+            {
+                var result = await _userService.findUserById(userId);
+                return result.Status switch
+                {
+                    "not_found" => NotFound(result),
+                    "invalid_credentials" => BadRequest(result),
+                    "error" => StatusCode(500, result),
+                    _ => Ok(result)
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Internal server error",
+                    detail = ex.Message
+                });
+            }
 
+        }
     }
 }

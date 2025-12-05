@@ -29,6 +29,26 @@ namespace Infrastructure.Persistence
             builder.Property(c => c.PasswordHash)
                 .IsRequired();
 
+            builder.OwnsOne(c => c.UserAddress, address =>
+            {
+                address.ToTable("UserAddresses");
+
+                address.Property(a => a.Street)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnName("Street");
+                address.Property(a => a.City)
+                    .HasMaxLength(100)
+                    .HasColumnName("City");
+                address.Property(a => a.State)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnName("State");
+                address.Property(a => a.ZipCode)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnName("ZipCode");
+            });
         }
 
     }

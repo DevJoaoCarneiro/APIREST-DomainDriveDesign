@@ -2,9 +2,6 @@
 using Domain.Repository;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Infrastructure.Repositories
 {
@@ -33,13 +30,21 @@ namespace Infrastructure.Repositories
 
         public async Task<IEnumerable<User>> GetAllAsync()
         {
-            return await _context.Users.ToListAsync();
+            return await _context.Users
+        .Include(u => u.UserAddress)
+        .AsNoTracking()
+        .ToListAsync();
 
         }
 
         public async Task<User> GetByEmailAsync(string email)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Mail == email);
+        }
+
+        public async Task<User> GetByIdAsync(Guid userId)
+        {
+            return await _context.Users.FindAsync(userId); 
         }
     }
 }

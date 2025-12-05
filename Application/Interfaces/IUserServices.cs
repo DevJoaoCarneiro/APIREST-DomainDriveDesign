@@ -12,5 +12,7 @@ namespace Application.Interfaces
         Task<UserResponseDTO> createUser(UserRequestDTO user);
 
         Task<UserListResponseDTO> findAllUser();
+
+        Task<UserResponseDTO> findUserById(Guid userId);
     }
 }
