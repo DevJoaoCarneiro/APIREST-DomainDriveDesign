@@ -2,6 +2,7 @@
 using Application.Request;
 using Application.Services;
 using Domain.entities;
+using Domain.Entities.Embeded;
 using Domain.Repository;
 using NSubstitute;
 
@@ -31,11 +32,16 @@ namespace Tests.Services
                 Password = expectedPassword
             };
 
+
+            var addressList = new Address("Street A", "City X", "State Y", "12345", "432");
+
+
             var user = new User
             (
                 "Tim Bernardes",
                 "tim_bernardes@gmail.com",
-                validHash
+                validHash,
+                addressList
             );
 
             _userRepository.GetByEmailAsync(loginRequest.Mail)
@@ -96,11 +102,15 @@ namespace Tests.Services
                 Password = wrongPassword
             };
 
+
+            var addressList = new Address("Street A", "City X", "State Y", "12345", "432");
+
             var user = new User
            (
                "Tim Bernardes",
                "tim_bernardes@gmail.com",
-               validHash
+               validHash,
+               addressList
            );
 
             _userRepository.GetByEmailAsync(loginRequest.Mail)

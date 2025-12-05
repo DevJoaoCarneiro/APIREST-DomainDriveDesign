@@ -2,6 +2,7 @@
 using Application.Request;
 using Application.Response;
 using Domain.entities;
+using Domain.Entities.Embeded;
 using Domain.Interfaces;
 using Domain.Repository;
 using System;
@@ -43,7 +44,15 @@ namespace Application.Service
                 (
                     userRequestDTO.Name,
                     userRequestDTO.Mail,
-                    PasswordHash
+                    PasswordHash,
+                    new Address
+                    (
+                        userRequestDTO.UserAddress.Street,
+                        userRequestDTO.UserAddress.Number,
+                        userRequestDTO.UserAddress.City,
+                        userRequestDTO.UserAddress.State,
+                        userRequestDTO.UserAddress.ZipCode
+                    )
                 );
 
                 await _userRepository.AddAsync(newUser);
@@ -91,8 +100,17 @@ namespace Application.Service
 
                 var userList = users.Select(user => new UserDataList
                 {
+                    UserId = user.UserId,
                     Name = user.Name,
-                    Mail = user.Mail
+                    Mail = user.Mail,
+                    UserAddress = user.UserAddress != null ? new AddressResponseDTO 
+                    {
+                        Street = user.UserAddress.Street,
+                        Number = user.UserAddress.Number,
+                        City = user.UserAddress.City,
+                        State = user.UserAddress.State,
+                        ZipCode = user.UserAddress.ZipCode
+                    }: null
                 }).ToList();
 
                 return new UserListResponseDTO
@@ -113,6 +131,67 @@ namespace Application.Service
                 };
 
             }
+        }
+
+        public async Task<UserResponseDTO> findUserById(Guid userId)
+        {
+
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    return new UserResponseDTO
+                    {
+
+                        Message = "UserId is invalid",
+                        Status = "invalid_credentials",
+                        Data = null
+                    };
+                }
+
+                var response = await _userRepository.GetByIdAsync(userId);
+
+                if (response == null)
+                {
+                    return new UserResponseDTO
+                    {
+                        Message = "No users found",
+                        Status = "not_found",
+                        Data = null
+                    };
+                }
+
+                return new UserResponseDTO
+                {
+                    Message = "User found successfully",
+                    Status = "Success",
+                    Data = new UserData
+                    {
+                        UserId = response.UserId,
+                        Name = response.Name,
+                        Mail = response.Mail,
+                        UserAddress = response.UserAddress != null ? new AddressResponseDTO
+                        {
+                            Street = response.UserAddress.Street,
+                            Number = response.UserAddress.Number,
+                            City = response.UserAddress.City,
+                            State = response.UserAddress.State,
+                            ZipCode = response.UserAddress.ZipCode
+                        } : null
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new UserResponseDTO
+                {
+                    Message = $"An error occurred: {ex.Message}",
+                    Status = "error",
+                    Data = null
+                };
+            }
+            
+
         }
     }
 }

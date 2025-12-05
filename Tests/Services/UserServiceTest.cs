@@ -1,8 +1,7 @@
-using Application.Interfaces;
 using Application.Request;
-using Application.Response;
 using Application.Service;
 using Domain.entities;
+using Domain.Entities.Embeded;
 using Domain.Interfaces;
 using Domain.Repository;
 using NSubstitute;
@@ -84,10 +83,13 @@ public class UserServiceTest
     [Fact]
     public async Task Should_Return_All_Users_Corretly()
     {
+
+        var addressList = new Address("Street A", "City X", "State Y", "12345", "432");
+
         var userList = new List<User>
         {
-            new User("Joao", "joao@gmail.com", "123#@$"),
-            new User("Maria", "maria@gmail.com", "313%#$")
+            new User("Joao", "joao@gmail.com", "123#@$", addressList),
+            new User("Maria", "maria@gmail.com", "313%#$", addressList)
         };
 
         _userRepository.GetAllAsync()
@@ -107,10 +109,13 @@ public class UserServiceTest
     [Fact]
     public async void Should_Return_BadRequest_WhenError()
     {
+        var addressList = new Address("Street A", "City X", "State Y", "12345", "432");
+
+
         var userList = new List<User>
             {
-                new User("Joao", "joao@gmail.com", "123#@$"),
-                new User("Maria", "maria@gmail.com", "313%#$")
+                new User("Joao", "joao@gmail.com", "123#@$", addressList),
+                new User("Maria", "maria@gmail.com", "313%#$", addressList)
             };
 
         _userRepository.GetAllAsync()
@@ -133,5 +138,72 @@ public class UserServiceTest
         Assert.Equal("No users found", result.Message);
         Assert.Equal("not_found", result.Status);
         Assert.Empty(result.Data);
+    }
+
+    [Fact]
+    public async Task FindUserById_ShouldReturnInvalidCredentials_WhenIdIsEmpty()
+    {
+        var emptyId = Guid.Empty;
+
+        var result = await _service.findUserById(emptyId);
+
+        Assert.Equal("invalid_credentials", result.Status);
+        Assert.Equal("UserId is invalid", result.Message);
+
+        await _userRepository.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
+    }
+
+    [Fact]
+    public async Task FindUserById_ShouldReturnNotFound_WhenUserDoesNotExist()
+    {
+        var userId = Guid.NewGuid();
+
+        _userRepository.GetByIdAsync(userId).Returns(Task.FromResult<User?>(null));
+
+        var result = await _service.findUserById(userId);
+
+        Assert.Equal("not_found", result.Status);
+        Assert.Equal("No users found", result.Message);
+        Assert.Null(result.Data);
+    }
+
+    [Fact]
+    public async Task FindUserById_ShouldReturnSuccess_WhenUserExists_WithAddress()
+    {
+        var userId = Guid.NewGuid();
+
+        var address = new Address("Rua Teste", "123", "Cidade X", "Estado Y", "00000-000");
+        var user = new User("Joao", "joao@email.com", "hash123", address);
+
+        _userRepository.GetByIdAsync(userId).Returns(user);
+
+        var result = await _service.findUserById(userId);
+
+        Assert.Equal("Success", result.Status);
+        Assert.Equal("User found successfully", result.Message);
+        Assert.NotNull(result.Data);
+
+        Assert.Equal("Joao", result.Data.Name);
+        Assert.Equal("joao@email.com", result.Data.Mail);
+
+        Assert.NotNull(result.Data.UserAddress);
+        Assert.Equal("Rua Teste", result.Data.UserAddress.Street);
+        Assert.Equal("Cidade X", result.Data.UserAddress.City);
+    }
+
+    [Fact]
+    public async Task FindUserById_ShouldReturnError_WhenRepositoryThrowsException()
+    {
+        var userId = Guid.NewGuid();
+        var errorMessage = "Database connection failed";
+
+        _userRepository.GetByIdAsync(userId).ThrowsAsync(new Exception(errorMessage));
+
+        var result = await _service.findUserById(userId);
+
+        Assert.Equal("error", result.Status);
+        Assert.Contains(errorMessage, result.Message);
+        Assert.Null(result.Data);
+
     }
 }

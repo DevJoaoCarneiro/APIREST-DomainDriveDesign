@@ -13,5 +13,7 @@ namespace Domain.Repository
 
         Task<User> GetByEmailAsync(string email);
 
+        Task<User>GetByIdAsync(Guid userId);
+
     }
 }
