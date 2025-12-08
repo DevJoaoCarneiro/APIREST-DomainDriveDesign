@@ -41,19 +41,19 @@ namespace Application.Service
                 string PasswordHash = _securityService.HashPassword(userRequestDTO.password);
 
                 var newUser = new User
-                (
-                    userRequestDTO.Name,
-                    userRequestDTO.Mail,
-                    PasswordHash,
-                    new Address
-                    (
-                        userRequestDTO.UserAddress.Street,
-                        userRequestDTO.UserAddress.Number,
-                        userRequestDTO.UserAddress.City,
-                        userRequestDTO.UserAddress.State,
-                        userRequestDTO.UserAddress.ZipCode
-                    )
-                );
+                {
+                    Name = userRequestDTO.Name,
+                    Mail = userRequestDTO.Mail,
+                    PasswordHash = PasswordHash,
+                    UserAddress = new Address
+                    {
+                        Street = userRequestDTO.UserAddress.Street,
+                        Number = userRequestDTO.UserAddress.Number,
+                        City = userRequestDTO.UserAddress.City,
+                        State = userRequestDTO.UserAddress.State,
+                        ZipCode = userRequestDTO.UserAddress.ZipCode
+                    }
+                };
 
                 await _userRepository.AddAsync(newUser);
 
