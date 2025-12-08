@@ -33,16 +33,21 @@ namespace Tests.Services
             };
 
 
-            var addressList = new Address("Street A", "City X", "State Y", "12345", "432");
+            var addressList = new Address{
+                Street = "Street A",
+                City = "City X",
+                State = "State Y",
+                Number = "12345",
+                ZipCode = "432" };
 
 
             var user = new User
-            (
-                "Tim Bernardes",
-                "tim_bernardes@gmail.com",
-                validHash,
-                addressList
-            );
+            {
+                Name = "Tim Bernardes",
+                Mail = "tim_bernardes@gmail.com",
+                PasswordHash = validHash,
+                UserAddress = addressList
+            };
 
             _userRepository.GetByEmailAsync(loginRequest.Mail)
                 .Returns(user);
@@ -103,15 +108,23 @@ namespace Tests.Services
             };
 
 
-            var addressList = new Address("Street A", "City X", "State Y", "12345", "432");
+            var addressList = new Address
+            {
+                Street = "Street A",
+                City = "City X",
+                State = "State Y",
+                Number = "12345",
+                ZipCode = "432"
+            };
+
 
             var user = new User
-           (
-               "Tim Bernardes",
-               "tim_bernardes@gmail.com",
-               validHash,
-               addressList
-           );
+            {
+                Name = "Tim Bernardes",
+                Mail = "tim_bernardes@gmail.com",
+                PasswordHash = validHash,
+                UserAddress = addressList
+            };
 
             _userRepository.GetByEmailAsync(loginRequest.Mail)
                 .Returns(user);

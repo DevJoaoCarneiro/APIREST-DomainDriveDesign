@@ -84,12 +84,38 @@ public class UserServiceTest
     public async Task Should_Return_All_Users_Corretly()
     {
 
-        var addressList = new Address("Street A", "City X", "State Y", "12345", "432");
+        var address = new Address
+        {
+            Street = "Rua Teste",
+            Number = "123",
+            City = "Cidade X",
+            State = "Estado Y",
+            ZipCode = "00000-000"
+        };
+        var user = new User
+        {
+            Name = "Joao",
+            Mail = "joao@gmail.com",
+            PasswordHash = "hash123",
+            UserAddress = address
+        };
 
         var userList = new List<User>
         {
-            new User("Joao", "joao@gmail.com", "123#@$", addressList),
-            new User("Maria", "maria@gmail.com", "313%#$", addressList)
+            new User
+        {
+            Name = "Joao",
+            Mail = "joao@gmail.com",
+            PasswordHash = "hash123",
+            UserAddress = address
+        },
+            new User
+        {
+            Name = "Maria",
+            Mail = "maria@gmail.com",
+            PasswordHash = "hash123",
+            UserAddress = address
+        }
         };
 
         _userRepository.GetAllAsync()
@@ -109,14 +135,21 @@ public class UserServiceTest
     [Fact]
     public async void Should_Return_BadRequest_WhenError()
     {
-        var addressList = new Address("Street A", "City X", "State Y", "12345", "432");
-
-
-        var userList = new List<User>
-            {
-                new User("Joao", "joao@gmail.com", "123#@$", addressList),
-                new User("Maria", "maria@gmail.com", "313%#$", addressList)
-            };
+        var address = new Address
+        {
+            Street = "Rua Teste",
+            Number = "123",
+            City = "Cidade X",
+            State = "Estado Y",
+            ZipCode = "00000-000"
+        };
+        var user = new User
+        {
+            Name = "Joao",
+            Mail = "joao@gmail.com",
+            PasswordHash = "hash123",
+            UserAddress = address
+        };
 
         _userRepository.GetAllAsync()
                        .ThrowsAsync(new Exception("DB error"));
@@ -172,8 +205,21 @@ public class UserServiceTest
     {
         var userId = Guid.NewGuid();
 
-        var address = new Address("Rua Teste", "123", "Cidade X", "Estado Y", "00000-000");
-        var user = new User("Joao", "joao@email.com", "hash123", address);
+        var address = new Address
+        {
+            Street = "Rua Teste",
+            Number = "123",
+            City = "Cidade X",
+            State = "Estado Y",
+            ZipCode = "00000-000"
+        };
+        var user = new User
+        {
+            Name = "Joao",
+            Mail = "joao@email.com",
+            PasswordHash = "hash123",
+            UserAddress = address
+        };
 
         _userRepository.GetByIdAsync(userId).Returns(user);
 
