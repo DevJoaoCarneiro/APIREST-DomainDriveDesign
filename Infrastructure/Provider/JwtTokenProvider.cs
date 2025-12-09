@@ -1,9 +1,11 @@
 ﻿using Application.Interfaces;
 using Domain.entities;
+using Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Infrastructure.Provider
@@ -41,5 +43,31 @@ namespace Infrastructure.Provider
 
             return tokenHandler.WriteToken(token);
         }
+
+        public RefreshToken GenerateRefreshToken(Guid userId, string ipAddress)
+        {
+            var randomNumber = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+
+            var tokenString = Convert.ToBase64String(randomNumber);
+
+            return new RefreshToken
+            {
+                Token = tokenString,
+                UserId = userId,
+
+                Expires = DateTime.UtcNow.AddDays(7),
+                Created = DateTime.UtcNow,
+                
+                CreatedByIp = ipAddress,
+
+                Revoked = null,
+                RevokedByIp = null,
+                ReplacedByToken = null,
+                ReasonRevoked = null
+            };
+        }
+
     }
 }

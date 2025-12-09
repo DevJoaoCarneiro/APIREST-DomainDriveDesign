@@ -1,6 +1,8 @@
 ﻿using Application.Interfaces;
 using Application.Request;
 using Application.Response;
+using Domain.entities;
+using Domain.Interfaces;
 using Domain.Repository;
 
 namespace Application.Services
@@ -9,17 +11,22 @@ namespace Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ITokenService _tokenService;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly IIpAddressService _ipAddressService;
 
-        public AuthService(IUserRepository userRepository, ITokenService tokenService)
+        public AuthService(IUserRepository userRepository, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, IIpAddressService ipAddressService)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;
+            _refreshTokenRepository = refreshTokenRepository;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<LoginResponseDTO> AuthenticateLogin(LoginRequestDTO loginRequestDTO)
         {
             try
             {
+                var currentIp = _ipAddressService.GetIpAddress();
                 var result = await _userRepository.GetByEmailAsync(loginRequestDTO.Mail);
 
                 if (result == null)
@@ -41,12 +48,17 @@ namespace Application.Services
                 }
 
                 var token = _tokenService.GenerateToken(result);
+                var refreshToken = _tokenService.GenerateRefreshToken(result.UserId, currentIp);
+
+                await _refreshTokenRepository.AddAsync(refreshToken);
+                await _refreshTokenRepository.SaveChangesAsync();
 
                 return new LoginResponseDTO
                 {
                     Message = "Login successful",
                     Status = "Success",
-                    Token = token
+                    Token = token,
+                    RefreshToken = refreshToken.Token
                 };
             }
             catch (Exception)
@@ -55,7 +67,97 @@ namespace Application.Services
                 {
                     Message = "Internal Error",
                     Status = "error",
-                    Token = ""
+                    Token = "",
+                    RefreshToken = ""
+                };
+            }
+            
+        }
+
+        public async Task<RefreshTokenResponseDTO> RefreshToken(RefreshTokenRequestDTO requestDTO)
+        {
+            try
+            {
+                var currentIp = _ipAddressService.GetIpAddress();
+                var storedToken = await _refreshTokenRepository.GetByTokenAsync(requestDTO.RefreshToken);
+
+                if (storedToken == null)
+                {
+                    return new RefreshTokenResponseDTO
+                    {
+                        Message = "Invalid refresh token",
+                        Status = "invalid_token"
+                    };
+                }
+
+                if (storedToken.Expires < DateTime.UtcNow)
+                {
+                    return new RefreshTokenResponseDTO
+                    {
+                        Message = "Refresh token has expired",
+                        Status = "expired_token"
+                    };
+                }
+
+                if (storedToken.Revoked != null)
+                {
+                    var allTokens = await _refreshTokenRepository.GetAllActiveByUserIdAsync(storedToken.UserId);
+                    foreach (var token in allTokens)
+                    {
+                        token.Revoked = DateTime.UtcNow;
+                        token.ReasonRevoked = "Compromised token";
+                        token.RevokedByIp = currentIp;
+
+                        await _refreshTokenRepository.UpdateAsync(token);
+                    }
+
+                    await _refreshTokenRepository.SaveChangesAsync();
+
+                    return new RefreshTokenResponseDTO
+                    {
+                        Message = "Invalid token usage detected",
+                        Status = "security_alert"
+                    };
+                }
+
+                if (storedToken.User == null)
+                {
+                    return new RefreshTokenResponseDTO
+                    {
+                        Message = "Critical Error",
+                        Status = "not-found"
+                    };
+                }
+
+                var newAccessToken = _tokenService.GenerateToken(storedToken.User);
+                var newRefreshToken = _tokenService.GenerateRefreshToken(storedToken.UserId, currentIp);
+
+                storedToken.Revoked = DateTime.UtcNow;
+                storedToken.ReplacedByToken = newRefreshToken.Token;
+                storedToken.ReasonRevoked = "Replaced by new token";
+                storedToken.RevokedByIp = currentIp;
+
+                await _refreshTokenRepository.UpdateAsync(storedToken);
+                await _refreshTokenRepository.AddAsync(newRefreshToken);
+                await _refreshTokenRepository.SaveChangesAsync();
+
+                return new RefreshTokenResponseDTO
+                {
+                    Message = "Token refreshed successfully",
+                    Status = "Success",
+                    Data = new DataToken
+                    {
+                        AccessToken = newAccessToken,
+                        RefreshToken = newRefreshToken.Token
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new RefreshTokenResponseDTO
+                {
+                    Message = "Internal Error: "+ ex.Message,
+                    Status = "error"
                 };
             }
             
