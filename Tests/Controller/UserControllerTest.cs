@@ -1,12 +1,9 @@
-﻿using Application.Interfaces;
-using NSubstitute;
-using Api.controller;
+﻿using Api.controller;
+using Application.Interfaces;
 using Application.Request;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Application.Response;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
 
@@ -163,7 +160,6 @@ namespace Tests.Controller
             var notFound = Assert.IsType<NotFoundObjectResult>(response);
             var resultValue = Assert.IsType<UserListResponseDTO>(notFound.Value);
 
-            //Assert
             Assert.Equal(404, notFound.StatusCode);
             Assert.Equal("not_found", resultValue.Status);
             Assert.Equal("No users found", resultValue.Message);
@@ -185,6 +181,114 @@ namespace Tests.Controller
             var result = Assert.IsType<ObjectResult>(response);
 
             Assert.Equal(500, result.StatusCode);
+        }
+
+        [Fact]
+        public async void Should_Return_Ok_When_User_Is_Found()
+        {
+            var userId = Guid.NewGuid();
+            var userResponse = new UserResponseDTO
+            {
+                Status = "success",
+                Message = "User found",
+                Data = new UserData
+                {
+                    Name = "João Silva",
+                    Mail = "joao@teste.com"
+                }
+            };
+
+            _userServices.findUserById(userId).Returns(userResponse);
+
+            var response = await _controller.GetUserById(userId);
+
+            var okResult = Assert.IsType<OkObjectResult>(response);
+            var resultValue = Assert.IsType<UserResponseDTO>(okResult.Value);
+
+            Assert.NotNull(response);
+            Assert.Equal(200, okResult.StatusCode);
+            Assert.Equal(userResponse.Status, resultValue.Status);
+            Assert.Equal(userResponse.Data.Name, resultValue.Data.Name);
+        }
+
+        [Fact]
+        public async void Should_Return_NotFound_When_User_Does_Not_Exist()
+        {
+            var userId = Guid.NewGuid();
+            var userResponse = new UserResponseDTO
+            {
+                Status = "not_found",
+                Message = "User not found"
+            };
+
+            _userServices.findUserById(userId).Returns(userResponse);
+
+            var response = await _controller.GetUserById(userId);
+
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(response);
+            var resultValue = Assert.IsType<UserResponseDTO>(notFoundResult.Value);
+
+            Assert.Equal(404, notFoundResult.StatusCode);
+            Assert.Equal("not_found", resultValue.Status);
+        }
+
+        [Fact]
+        public async void Should_Return_BadRequest_When_Invalid_Credentials()
+        {
+
+            var userId = Guid.NewGuid();
+            var userResponse = new UserResponseDTO
+            {
+                Status = "invalid_credentials",
+                Message = "Credential issue"
+            };
+
+            _userServices.findUserById(userId).Returns(userResponse);
+
+            var response = await _controller.GetUserById(userId);
+
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(response);
+
+            Assert.Equal(400, badRequestResult.StatusCode);
+        }
+
+        [Fact]
+        public async void Should_Return_InternalServerError_When_Service_Returns_Error()
+        {
+            var userId = Guid.NewGuid();
+            var userResponse = new UserResponseDTO
+            {
+                Status = "error",
+                Message = "Database error"
+            };
+
+            _userServices.findUserById(userId).Returns(userResponse);
+
+            var response = await _controller.GetUserById(userId);
+
+            var objectResult = Assert.IsType<ObjectResult>(response);
+
+            Assert.Equal(500, objectResult.StatusCode);
+        }
+
+        [Fact]
+        public async void Should_Return_InternalServerError_When_Exception_Occurs()
+        {
+            var userId = Guid.NewGuid();
+            _userServices.findUserById(userId).Throws(new Exception("Critical failure"));
+
+            var response = await _controller.GetUserById(userId);
+
+            var objectResult = Assert.IsType<ObjectResult>(response);
+
+            Assert.Equal(500, objectResult.StatusCode);
+
+            var value = objectResult.Value;
+            var messageProperty = value.GetType().GetProperty("Message").GetValue(value, null);
+            var detailProperty = value.GetType().GetProperty("detail").GetValue(value, null);
+
+            Assert.Equal("Internal server error", messageProperty);
+            Assert.Equal("Critical failure", detailProperty);
         }
     }
 }
