@@ -7,7 +7,7 @@ using Domain.Entities.Embeded;
 using Domain.Interfaces;
 using Domain.Repository;
 using NSubstitute;
-using NSubstitute.ReturnsExtensions;
+using NSubstitute.ExceptionExtensions;
 
 namespace Tests.Services
 {
@@ -229,8 +229,123 @@ namespace Tests.Services
 
             Assert.Equal("Invalid refresh token", result.Message);
             Assert.Equal("invalid_token", result.Status);
-
-
         }
+
+        [Fact]
+        public async void Should_Return_Token_Expired_When_It_Is_Expired()
+        {
+            var validToken = "valid-token";
+
+            var requestDTO = new RefreshTokenRequestDTO
+            {
+                RefreshToken = validToken
+            };
+
+            var expiredToken = new RefreshToken
+            {
+                Token = validToken,
+                Expires = DateTime.UtcNow.AddDays(-1)
+            };
+
+            _refreshTokenRepository.GetByTokenAsync(requestDTO.RefreshToken).Returns(expiredToken);
+
+            var result = await _service.RefreshToken(requestDTO);
+
+            Assert.Equal("Refresh token has expired", result.Message);
+            Assert.Equal("expired_token", result.Status);
+        }
+
+        [Fact]
+        public async void Should_Return_Token_Revoked_When_It_Is_Revoked()
+        {
+            var validToken = "valid-token";
+
+            var requestDTO = new RefreshTokenRequestDTO
+            {
+                RefreshToken = validToken
+            };
+
+            var refreshToken = new RefreshToken
+            {
+                UserId = Guid.NewGuid(),
+                Token = validToken,
+                Expires = DateTime.UtcNow.AddDays(1),
+                Revoked = DateTime.UtcNow.AddDays(-1)
+            };
+
+            _refreshTokenRepository.GetAllActiveByUserIdAsync(refreshToken.UserId)
+                .Returns(new List<RefreshToken>());
+            _refreshTokenRepository.SaveChangesAsync()
+                .Returns(Task.CompletedTask);
+            _refreshTokenRepository.GetByTokenAsync(requestDTO.RefreshToken).Returns(refreshToken);
+
+            var result = await _service.RefreshToken(requestDTO);
+
+            Assert.Equal("Invalid token usage detected", result.Message);
+            Assert.Equal("security_alert", result.Status);
+
+            await _refreshTokenRepository.Received(1).GetAllActiveByUserIdAsync(refreshToken.UserId);
+            await _refreshTokenRepository.Received(1).SaveChangesAsync();
+            await _refreshTokenRepository.Received(1).GetByTokenAsync(requestDTO.RefreshToken);
+        }
+
+        [Fact]
+        public async void Should_Return_Critical_Error_When_User_Null()
+        {
+            var validToken = "valid-token";
+
+            var requestDTO = new RefreshTokenRequestDTO
+            {
+                RefreshToken = validToken
+            };
+
+            var refreshToken = new RefreshToken
+            {
+                UserId = Guid.NewGuid(),
+                Token = validToken,
+                Expires = DateTime.UtcNow.AddDays(1),
+                Revoked = null,
+                User = null
+            };
+
+            _refreshTokenRepository.GetByTokenAsync(requestDTO.RefreshToken).Returns(refreshToken);
+
+            var result = await _service.RefreshToken(requestDTO);
+
+            Assert.Equal("Critical Error", result.Message);
+            Assert.Equal("not-found", result.Status);
+
+            await _refreshTokenRepository.DidNotReceive().GetAllActiveByUserIdAsync(Arg.Any<Guid>());
+            await _refreshTokenRepository.DidNotReceive().SaveChangesAsync();
+        }
+
+        [Fact]
+        public async void Should_Handle_Exception_During_Authentication_When_Error()
+        {
+            var validToken = "valid-token";
+
+            var requestDTO = new RefreshTokenRequestDTO
+            {
+                RefreshToken = validToken
+            };
+
+            var refreshToken = new RefreshToken
+            {
+                UserId = Guid.NewGuid(),
+                Token = validToken,
+                Expires = DateTime.UtcNow.AddDays(1),
+                Revoked = null,
+                User = null
+            };
+
+            _refreshTokenRepository.GetByTokenAsync(requestDTO.RefreshToken).ThrowsAsync(new Exception("Error simulated"));
+
+            var result = await _service.RefreshToken(requestDTO);
+
+            Assert.Equal("Internal Error: Error simulated", result.Message);
+            Assert.Equal("error", result.Status);
+        }
+
+
     }
 }

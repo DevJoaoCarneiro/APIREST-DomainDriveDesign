@@ -4,6 +4,7 @@ using Application.Request;
 using Application.Response;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 namespace Tests.Controller
 {
@@ -106,6 +107,63 @@ namespace Tests.Controller
             Assert.Equal(500, objectResult.StatusCode);
             Assert.Equal("error", returnDto.Status);
             Assert.Equal("Internal Error", returnDto.Message);
+        }
+
+        [Fact]
+        public async Task RefreshToken_Should_Return_Ok_When_Service_Returns_Success()
+        {
+            var requestDTO = new RefreshTokenRequestDTO { RefreshToken = "valid-token" };
+            var serviceResponse = new RefreshTokenResponseDTO
+            {
+                Status = "Success",
+                Data = new DataToken { AccessToken = "new-access", RefreshToken = "new-refresh" }
+            };
+
+            _authService.RefreshToken(requestDTO).Returns(serviceResponse);
+
+            var result = await _controller.RefreshToken(requestDTO);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+            Assert.Equal(serviceResponse, okResult.Value);
+        }
+
+        [Theory]
+        [InlineData("invalid_token")]
+        [InlineData("expired_token")]
+        [InlineData("security_alert")]
+        public async Task RefreshToken_Should_Return_Unauthorized_When_Token_Is_Invalid_Or_Expired(string statusError)
+        {
+            var requestDTO = new RefreshTokenRequestDTO { RefreshToken = "bad-token" };
+            var serviceResponse = new RefreshTokenResponseDTO
+            {
+                Status = statusError,
+                Message = "Auth failed"
+            };
+
+            _authService.RefreshToken(requestDTO).Returns(serviceResponse);
+
+            var result = await _controller.RefreshToken(requestDTO);
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            Assert.Equal(401, unauthorizedResult.StatusCode);
+            Assert.Equal(serviceResponse, unauthorizedResult.Value);
+        }
+
+        [Fact]
+        public async Task RefreshToken_Should_Return_InternalServerError_When_Exception_Is_Thrown()
+        {
+            var requestDTO = new RefreshTokenRequestDTO { RefreshToken = "token" };
+
+
+            _authService.RefreshToken(requestDTO).Throws(new Exception("Catastrophic Failure"));
+
+            var result = await _controller.RefreshToken(requestDTO);
+
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, objectResult.StatusCode);
+
+            var value = objectResult.Value;
         }
     }
 }
