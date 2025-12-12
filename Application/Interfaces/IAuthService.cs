@@ -11,5 +11,7 @@ namespace Application.Interfaces
         Task<LoginResponseDTO> AuthenticateLogin(LoginRequestDTO loginRequestDTO);
 
         Task<RefreshTokenResponseDTO> RefreshToken(RefreshTokenRequestDTO refreshTokenRequestDTO);
+
+        Task<AuthResponseDTO> LoginWithGoogleAsync(string idToken);
     }
 }

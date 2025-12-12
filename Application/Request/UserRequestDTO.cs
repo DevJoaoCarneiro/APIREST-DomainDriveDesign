@@ -6,7 +6,6 @@ namespace Application.Request
 {
     public class UserRequestDTO
     {
-        public string UserId { get; set; }
         public string Name { get; set; } = string.Empty;
 
         public string Mail { get; set; } = string.Empty;

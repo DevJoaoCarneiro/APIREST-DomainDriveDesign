@@ -16,12 +16,13 @@ namespace Tests.Services
         private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
         private readonly ITokenService _tokenService = Substitute.For<ITokenService>();
         private readonly IIpAddressService _ipAddressService = Substitute.For<IIpAddressService>();
+        private readonly IGoogleAuthService _googleAuthService = Substitute.For<IGoogleAuthService>();
         private readonly IRefreshTokenRepository _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
         private readonly AuthService _service;
 
         public AuthServiceTest()
         {
-            _service = new AuthService(_userRepository, _tokenService, _refreshTokenRepository, _ipAddressService);
+            _service = new AuthService(_userRepository, _tokenService, _refreshTokenRepository, _ipAddressService, _googleAuthService);
         }
 
         [Fact]

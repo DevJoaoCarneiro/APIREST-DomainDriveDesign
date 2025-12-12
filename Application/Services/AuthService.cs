@@ -1,7 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Request;
 using Application.Response;
-using Domain.entities;
 using Domain.Interfaces;
 using Domain.Repository;
 
@@ -13,14 +12,18 @@ namespace Application.Services
         private readonly ITokenService _tokenService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IIpAddressService _ipAddressService;
+        private readonly IGoogleAuthService _googleAuthService;
 
-        public AuthService(IUserRepository userRepository, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, IIpAddressService ipAddressService)
+        public AuthService(IUserRepository userRepository, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, IIpAddressService ipAddressService, IGoogleAuthService googleAuthService)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;
             _refreshTokenRepository = refreshTokenRepository;
             _ipAddressService = ipAddressService;
+            _googleAuthService = googleAuthService;
         }
+
+
 
         public async Task<LoginResponseDTO> AuthenticateLogin(LoginRequestDTO loginRequestDTO)
         {
@@ -71,7 +74,80 @@ namespace Application.Services
                     RefreshToken = ""
                 };
             }
-            
+
+        }
+
+        public async Task<AuthResponseDTO> LoginWithGoogleAsync(string idToken)
+        {
+
+            try
+            {
+                var currentIp = _ipAddressService.GetIpAddress();
+                var googleUser = await _googleAuthService.ValidateGoogleTokenAsync(idToken);
+
+                if (googleUser == null)
+                {
+                    return new AuthResponseDTO
+                    {
+                        Message = "Invalid Google token",
+                        Status = "invalid_token",
+                        UserData = null
+                    };
+                }
+
+                var user = await _userRepository.GetByEmailAsync(googleUser.Email);
+
+                if (user == null)
+                {
+                    return new AuthResponseDTO
+                    {
+                        Message = "User not found",
+                        Status = "not_found",
+                        UserData = new GoogleUserData
+                        {
+                            Payload = new UserPayload
+                            {
+                                GoogleId = googleUser.GoogleId,
+                                Email = googleUser.Email,
+                                Name = googleUser.Name
+                            }
+                        }
+                    };
+                }
+
+                var token = _tokenService.GenerateToken(user);
+                var refreshToken = _tokenService.GenerateRefreshToken(user.UserId, currentIp);
+
+                await _refreshTokenRepository.AddAsync(refreshToken);
+                await _refreshTokenRepository.SaveChangesAsync();
+
+                return new AuthResponseDTO
+                {
+                    Message = "Login successful",
+                    Status = "Success",
+                    UserData = new GoogleUserData
+                    {
+                        AccessToken = token,
+                        RefreshToken = refreshToken.Token,
+                        ExpiresIn = refreshToken.Expires,
+                        Payload = new UserPayload
+                        {
+                            GoogleId = user.UserId.ToString(),
+                            Email = user.Mail,
+                            Name = user.Name
+                        }
+                    }
+                };
+            }
+            catch (Exception)
+            {
+                return new AuthResponseDTO
+                {
+                    Message = "Internal Error",
+                    Status = "error",
+                    UserData = null
+                };
+            }
         }
 
         public async Task<RefreshTokenResponseDTO> RefreshToken(RefreshTokenRequestDTO requestDTO)
@@ -156,11 +232,11 @@ namespace Application.Services
             {
                 return new RefreshTokenResponseDTO
                 {
-                    Message = "Internal Error: "+ ex.Message,
+                    Message = "Internal Error: " + ex.Message,
                     Status = "error"
                 };
             }
-            
+
         }
     }
 }

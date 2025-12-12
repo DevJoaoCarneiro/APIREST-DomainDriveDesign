@@ -4,6 +4,7 @@ using Application.Services;
 using Domain.Interfaces;
 using Domain.Repository;
 using Infrastructure.Context;
+using Infrastructure.ExternalServices;
 using Infrastructure.Provider;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
@@ -15,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:5174", "http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
@@ -33,6 +34,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, JwtTokenProvider>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IIpAddressService, IpAddressService>();
+builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -49,6 +51,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAll");
+
+app.UseAuthentication();
 
 app.UseHttpsRedirection();
 
