@@ -63,5 +63,29 @@ namespace Api.controller
                 });
             }
         }
+
+        [HttpPost("google")]
+        public async Task<IActionResult> LoginGoogle([FromBody] LoginGoogleDTO loginGoogleDto)
+        {
+            try
+            {
+                var result = await _authService.LoginWithGoogleAsync(loginGoogleDto.IdToken);
+                return result.Status switch
+                {
+                    "invalid_token" => Unauthorized(result),
+                    "not-found" => StatusCode(404, result),
+                    "error" => StatusCode(500, result),
+                    _ => Ok(result)
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Internal server error",
+                    detail = ex.Message
+                });
+            }
+        }
     }
 }

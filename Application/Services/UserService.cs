@@ -42,6 +42,7 @@ namespace Application.Service
 
                 var newUser = new User
                 {
+                    UserId = Guid.NewGuid(),
                     Name = userRequestDTO.Name,
                     Mail = userRequestDTO.Mail,
                     PasswordHash = PasswordHash,
