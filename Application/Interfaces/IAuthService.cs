@@ -13,5 +13,7 @@ namespace Application.Interfaces
         Task<RefreshTokenResponseDTO> RefreshToken(RefreshTokenRequestDTO refreshTokenRequestDTO);
 
         Task<AuthResponseDTO> LoginWithGoogleAsync(string idToken);
+
+        Task<ResetPasswordResponseDTO> RequestPasswordResetAsync(string email);
     }
 }

@@ -15,5 +15,7 @@ namespace Domain.Repository
 
         Task<User>GetByIdAsync(Guid userId);
 
+        Task<User> UpdateAsync(User user);
+
     }
 }

@@ -15,6 +15,12 @@ namespace Domain.entities
         public Address? UserAddress { get;  set; }
         public string PasswordHash { get; set; } = string.Empty;
 
+        public DateTime CreatedAt { get; set; }
+
+        public string? PasswordResetToken { get; set; }
+
+        public DateTime? PasswordResetTokenExpires { get; set; }
+
         public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
     }

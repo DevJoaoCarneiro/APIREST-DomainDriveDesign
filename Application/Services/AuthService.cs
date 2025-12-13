@@ -238,5 +238,53 @@ namespace Application.Services
             }
 
         }
+        public async Task<ResetPasswordResponseDTO> RequestPasswordResetAsync(string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                {
+                    return new ResetPasswordResponseDTO
+                    {
+                        Message = "Email is required",
+                        Status = "invalid_request",
+                        Mail = ""
+                    };
+                }
+
+                var user = await _userRepository.GetByEmailAsync(email);
+
+                if (user == null)
+                {
+                    return new ResetPasswordResponseDTO
+                    {
+                        Status = "success",
+                        Message = "Sending a confirmation mail for you",
+                        Mail = ""
+                    };
+                }
+
+                var token = Guid.NewGuid().ToString();
+
+                user.PasswordResetToken = token;
+                user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1);
+
+                await _userRepository.UpdateAsync(user);
+
+
+                return new ResetPasswordResponseDTO
+                {
+                    Status = "success",
+                    Message = "Se o e-mail estiver cadastrado, enviaremos um link de recuperação.",
+                    Mail = ""
+                };
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            
+        }
     }
 }

@@ -47,6 +47,12 @@ namespace Infrastructure.Repositories
             return await _context.Users.FindAsync(userId); 
         }
 
+        public async Task<User> UpdateAsync(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return user;
+        }
 
     }
 }

@@ -87,5 +87,30 @@ namespace Api.controller
                 });
             }
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDTO forgotPasswordRequest)
+        {
+            try
+            {
+                var result = await _authService.RequestPasswordResetAsync(forgotPasswordRequest.Mail);
+
+                return result.Status switch
+                {
+                    "invalid_argument" => BadRequest(result),
+                    "error" => StatusCode(500, result),
+                    "success" => Ok(result),
+                    _ => Ok(result)
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Internal server error",
+                    detail = ex.Message
+                });
+            }
+        }
     }
 }
