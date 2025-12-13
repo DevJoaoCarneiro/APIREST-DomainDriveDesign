@@ -165,5 +165,115 @@ namespace Tests.Controller
 
             var value = objectResult.Value;
         }
+
+        [Fact]
+        public async Task LoginGoogle_Should_Return_Ok_When_Status_Is_Success()
+        {
+            var idToken = "valid_token";
+            var loginDto = new LoginGoogleDTO { IdToken = idToken };
+
+            var serviceResponse = new AuthResponseDTO
+            {
+                Status = "Success",
+                Message = "Login successful"
+            };
+
+            _authService.LoginWithGoogleAsync(idToken).Returns(serviceResponse);
+
+            var result = await _controller.LoginGoogle(loginDto);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+            Assert.Equal(serviceResponse, okResult.Value);
+        }
+
+        [Fact]
+        public async Task LoginGoogle_Should_Return_Unauthorized_When_Token_Is_Invalid()
+        {
+
+            var idToken = "invalid_token";
+            var loginDto = new LoginGoogleDTO { IdToken = idToken };
+
+            var serviceResponse = new AuthResponseDTO
+            {
+                Status = "invalid_token",
+                Message = "Invalid Google token"
+            };
+
+            _authService.LoginWithGoogleAsync(idToken).Returns(serviceResponse);
+
+            var result = await _controller.LoginGoogle(loginDto);
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            Assert.Equal(401, unauthorizedResult.StatusCode);
+            Assert.Equal(serviceResponse, unauthorizedResult.Value);
+        }
+
+        [Fact]
+        public async Task LoginGoogle_Should_Return_NotFound_When_User_Does_Not_Exist()
+        {
+            var idToken = "valid_token_no_user";
+            var loginDto = new LoginGoogleDTO { IdToken = idToken };
+
+            var serviceResponse = new AuthResponseDTO
+            {
+                Status = "not-found",
+                Message = "User not found"
+            };
+
+            _authService.LoginWithGoogleAsync(idToken).Returns(serviceResponse);
+
+            var result = await _controller.LoginGoogle(loginDto);
+
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(404, objectResult.StatusCode);
+            Assert.Equal(serviceResponse, objectResult.Value);
+        }
+
+        [Fact]
+        public async Task LoginGoogle_Should_Return_500_When_Service_Returns_Error()
+        {
+            var idToken = "token_error";
+            var loginDto = new LoginGoogleDTO { IdToken = idToken };
+
+            var serviceResponse = new AuthResponseDTO
+            {
+                Status = "error",
+                Message = "Internal Error"
+            };
+
+            _authService.LoginWithGoogleAsync(idToken).Returns(serviceResponse);
+
+
+            var result = await _controller.LoginGoogle(loginDto);
+
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, objectResult.StatusCode);
+            Assert.Equal(serviceResponse, objectResult.Value);
+        }
+
+        [Fact]
+        public async Task LoginGoogle_Should_Return_500_When_Exception_Is_Thrown()
+        {
+            var idToken = "token_exception";
+            var loginDto = new LoginGoogleDTO { IdToken = idToken };
+            var expectedExceptionMessage = "Critical database failure";
+
+            _authService
+                .When(x => x.LoginWithGoogleAsync(idToken))
+                .Do(x => { throw new Exception(expectedExceptionMessage); });
+
+            var result = await _controller.LoginGoogle(loginDto);
+
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, objectResult.StatusCode);
+
+            var val = objectResult.Value;
+
+            var detailProperty = val.GetType().GetProperty("detail");
+            var detailValue = detailProperty.GetValue(val, null) as string;
+
+            Assert.Equal(expectedExceptionMessage, detailValue);
+        }
     }
 }

@@ -95,7 +95,7 @@ namespace Application.Services
                     };
                 }
 
-                var user = await _userRepository.GetByEmailAsync(googleUser.Email);
+                var user = await _userRepository.GetByEmailAsync(googleUser.Mail);
 
                 if (user == null)
                 {
@@ -108,7 +108,7 @@ namespace Application.Services
                             Payload = new UserPayload
                             {
                                 GoogleId = googleUser.GoogleId,
-                                Email = googleUser.Email,
+                                Email = googleUser.Mail,
                                 Name = googleUser.Name
                             }
                         }

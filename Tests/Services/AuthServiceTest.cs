@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Request;
+using Application.Response;
 using Application.Services;
 using Domain.entities;
 using Domain.Entities;
@@ -347,6 +348,121 @@ namespace Tests.Services
             Assert.Equal("error", result.Status);
         }
 
+        [Fact]
+        public async void Should_Login_Using_Google_Auth_Correctly()
+        {
+            var idToken = "valid_google_id_token";
+            var expectedIp = "123.00.22.11";
+            var expectedToken = "jwt_token";
 
+            var response = new GoogleUserResult
+            {
+                Mail = "joao@gmail.com",
+                Name = "Joao Silva",
+                GoogleId = "google-unique-id-123"
+            };
+
+            var user = new User
+            {
+                UserId = Guid.NewGuid(),
+                Name = response.Name,
+                Mail = response.Mail,
+                PasswordHash = "123@#4"
+            };
+
+            var refreshedToken = new RefreshToken
+            {
+                Token = "123"
+            };
+
+            _ipAddressService.GetIpAddress().Returns(expectedIp);
+            _googleAuthService.ValidateGoogleTokenAsync(idToken)
+                .Returns(response);
+            _userRepository.GetByEmailAsync(response.Mail)
+                .Returns(user);
+            _tokenService.GenerateToken(user)
+                .Returns("jwt_token");
+            _tokenService.GenerateRefreshToken(user.UserId, expectedIp)
+                .Returns(refreshedToken);
+            _refreshTokenRepository.AddAsync(refreshedToken)
+                .Returns(Task.CompletedTask);
+
+            var result = await _service.LoginWithGoogleAsync(idToken);
+
+            Assert.Equal(expectedToken, result.UserData.AccessToken);
+            Assert.Equal(refreshedToken.Token, result.UserData.RefreshToken);
+            Assert.Equal(refreshedToken.Expires, result.UserData.ExpiresIn);
+
+            Assert.Equal(user.Name, result.UserData.Payload.Name);
+            Assert.Equal(user.Mail, result.UserData.Payload.Email);
+
+            Assert.Equal(user.UserId.ToString(), result.UserData.Payload.GoogleId);
+
+            await _refreshTokenRepository.Received(1).AddAsync(refreshedToken);
+            await _refreshTokenRepository.Received(1).SaveChangesAsync();
+
+        }
+
+        [Fact]
+        public async void Should_Return_Error_When_Google_Token_Is_Invalid()
+        {
+            var expetedIp = "123-123-313";
+            var idToken = "invalid_google_id_token";
+
+            _googleAuthService.ValidateGoogleTokenAsync(idToken)
+                .Returns((GoogleUserResult)null);
+
+            var result = await _service.LoginWithGoogleAsync(idToken);
+
+            Assert.Equal("Invalid Google token", result.Message);
+            Assert.Equal("invalid_token", result.Status);
+            Assert.Null(result.UserData);
+
+            _googleAuthService.Received(1).ValidateGoogleTokenAsync(idToken);
+        }
+
+        [Fact]
+        public async void Should_Return_Not_Found_When_User_Does_Not_Exist_In_Google_Login()
+        {
+            var expetedIp = "123-123-313";
+            var idToken = "valid-token";
+
+            _googleAuthService.ValidateGoogleTokenAsync(idToken)
+                .Returns(new GoogleUserResult
+                {
+                    Mail = "joao3231@gmail.com",
+                    Name = "Joao teste",
+                    GoogleId = "123444342"
+                });
+
+            _userRepository.GetByEmailAsync(Arg.Any<string>()).Returns((User)null);
+
+            var result = await _service.LoginWithGoogleAsync(idToken);
+
+            Assert.Equal("User not found", result.Message);
+            Assert.Equal("not_found", result.Status);
+            Assert.Equal("joao3231@gmail.com", result.UserData.Payload.Email);
+
+            await _googleAuthService.Received(1).ValidateGoogleTokenAsync(idToken);
+            await _userRepository.Received(1).GetByEmailAsync(Arg.Any<string>());
+
+        }
+
+        [Fact]
+        public async void Should_Handle_Exception_During_Google_Login()
+        {
+            var idToken = "valid_google_id_token";
+            var expectedIp = "123.00.22.11";
+            var expectedToken = "jwt_token";
+
+            _googleAuthService.ValidateGoogleTokenAsync(idToken)
+                .ThrowsAsync(new Exception("Simulated error"));
+
+            var result = await _service.LoginWithGoogleAsync(idToken);
+
+            Assert.Equal("Internal Error", result.Message);
+            Assert.Equal("error", result.Status);
+
+        }
     }
 }

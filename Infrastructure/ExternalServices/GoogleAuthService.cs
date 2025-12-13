@@ -28,7 +28,7 @@ namespace Infrastructure.ExternalServices
 
                 return new GoogleUserResult
                 {
-                    Email = payload.Email,
+                    Mail = payload.Email,
                     Name = payload.Name,
                     GoogleId = payload.Subject
                 };
