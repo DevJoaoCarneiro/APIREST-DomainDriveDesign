@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Application.Helpers;
+using Application.Interfaces;
 using Application.Request;
 using Application.Response;
 using Domain.Interfaces;
@@ -13,17 +14,23 @@ namespace Application.Services
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IIpAddressService _ipAddressService;
         private readonly IGoogleAuthService _googleAuthService;
+        private readonly IPasswordResetNotifier _notifier;
 
-        public AuthService(IUserRepository userRepository, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, IIpAddressService ipAddressService, IGoogleAuthService googleAuthService)
+        public AuthService(
+            IUserRepository userRepository,
+            ITokenService tokenService,
+            IRefreshTokenRepository refreshTokenRepository,
+            IIpAddressService ipAddressService,
+            IGoogleAuthService googleAuthService,
+            IPasswordResetNotifier notifier)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;
             _refreshTokenRepository = refreshTokenRepository;
             _ipAddressService = ipAddressService;
             _googleAuthService = googleAuthService;
+            _notifier = notifier;
         }
-
-
 
         public async Task<LoginResponseDTO> AuthenticateLogin(LoginRequestDTO loginRequestDTO)
         {
@@ -247,8 +254,7 @@ namespace Application.Services
                     return new ResetPasswordResponseDTO
                     {
                         Message = "Email is required",
-                        Status = "invalid_request",
-                        Mail = ""
+                        Status = "invalid_request"
                     };
                 }
 
@@ -258,30 +264,34 @@ namespace Application.Services
                 {
                     return new ResetPasswordResponseDTO
                     {
-                        Status = "success",
-                        Message = "Sending a confirmation mail for you",
-                        Mail = ""
+                        Message = "User not found",
+                        Status = "not_found",
                     };
                 }
 
                 var token = Guid.NewGuid().ToString();
+
 
                 user.PasswordResetToken = token;
                 user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1);
 
                 await _userRepository.UpdateAsync(user);
 
+                await _notifier.SendResetLinkAsync(user, token);
 
                 return new ResetPasswordResponseDTO
                 {
                     Status = "success",
-                    Message = "Se o e-mail estiver cadastrado, enviaremos um link de recuperação.",
-                    Mail = ""
+                    Message = "If the email address is registered, we will send a recovery link."
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                return new ResetPasswordResponseDTO
+                {
+                    Status = "error",
+                    Message = "Internal Error"+ex
+                };
                 throw;
             }
             

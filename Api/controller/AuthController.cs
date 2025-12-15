@@ -97,8 +97,9 @@ namespace Api.controller
 
                 return result.Status switch
                 {
-                    "invalid_argument" => BadRequest(result),
-                    "error" => StatusCode(500, result),
+                    "invalid_request" => BadRequest(result),
+                    "not_found" => StatusCode(404, result),
+                    "error" => BadRequest(result),
                     "success" => Ok(result),
                     _ => Ok(result)
                 };

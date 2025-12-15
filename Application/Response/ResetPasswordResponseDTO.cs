@@ -13,8 +13,6 @@ namespace Application.Response
 
         [JsonPropertyName("Status")]
         public string Status { get; set; } = string.Empty;
-
-        [JsonPropertyName("Mail")]
-        public string Mail { get; set; } = string.Empty;
+    
     }
 }

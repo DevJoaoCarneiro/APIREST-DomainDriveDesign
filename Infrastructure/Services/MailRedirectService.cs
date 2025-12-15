@@ -5,7 +5,7 @@ using System.Net.Mail;
 
 namespace Infrastructure.Services
 {
-    public class MailRedirectService : IMailService
+    public class MailRedirectService : IMailRedirectService
     {
         private readonly IConfiguration _configuration;
 
@@ -14,7 +14,7 @@ namespace Infrastructure.Services
             _configuration = configuration;
         }
 
-        public async Task SendEmailAsync(string toEmail, string subject, string body)
+        public async Task SendResetAsync(string toEmail, string subject, string body)
         {
             var smtpServer = _configuration["EmailSettings:SmtpServer"];
             var port = int.Parse(_configuration["EmailSettings:Port"]);

@@ -35,6 +35,9 @@ builder.Services.AddScoped<ITokenService, JwtTokenProvider>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IIpAddressService, IpAddressService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+builder.Services.AddScoped<IPasswordResetNotifier, MailNotificationService>();
+builder.Services.AddScoped<IMailRedirectService, MailRedirectService>();
+
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
