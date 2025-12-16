@@ -14,6 +14,7 @@ namespace Application.Services
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IIpAddressService _ipAddressService;
         private readonly IGoogleAuthService _googleAuthService;
+        private readonly IEventProducer _eventProducer;
         private readonly IPasswordResetNotifier _notifier;
 
         public AuthService(
@@ -22,6 +23,7 @@ namespace Application.Services
             IRefreshTokenRepository refreshTokenRepository,
             IIpAddressService ipAddressService,
             IGoogleAuthService googleAuthService,
+            IEventProducer eventProducer,
             IPasswordResetNotifier notifier)
         {
             _userRepository = userRepository;
@@ -29,6 +31,7 @@ namespace Application.Services
             _refreshTokenRepository = refreshTokenRepository;
             _ipAddressService = ipAddressService;
             _googleAuthService = googleAuthService;
+            _eventProducer = eventProducer;
             _notifier = notifier;
         }
 
@@ -277,7 +280,14 @@ namespace Application.Services
 
                 await _userRepository.UpdateAsync(user);
 
-                await _notifier.SendResetLinkAsync(user, token);
+                var eventMessage = new ResetRequestEventDTO
+                {
+                    UserEmail = user.Mail,
+                    UserName = user.Name,
+                    Token = token
+                };
+
+                _eventProducer.PublishAsync(eventMessage);
 
                 return new ResetPasswordResponseDTO
                 {
