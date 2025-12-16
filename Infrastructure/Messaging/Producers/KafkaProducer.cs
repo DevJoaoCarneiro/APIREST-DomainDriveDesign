@@ -7,12 +7,10 @@ namespace Infrastructure.Messaging.Producers
 {
     public class KafkaProducer : IEventProducer
     {
-        private readonly IConfiguration _configuration;
         private readonly IProducer<Null, string> _producer;
 
         public KafkaProducer(IConfiguration configuration)
         {
-            _configuration = configuration;
             var config = new ProducerConfig
             {
                 BootstrapServers = configuration["Kafka:BootstrapServers"]
@@ -21,14 +19,11 @@ namespace Infrastructure.Messaging.Producers
             _producer = new ProducerBuilder<Null, string>(config).Build();
         }
 
-        public async Task PublishAsync<T>(T message)
-        {
-            var eventType = typeof(T).Name;
-            var topic = _configuration[$"Kafka:Topics:PasswordReesend"];
+        public async Task PublishAsync<T>(string topic, T message) { 
 
             if (string.IsNullOrEmpty(topic))
             {
-                throw new Exception($"Tópico não configurado para o evento '{eventType}' no appsettings.");
+                throw new ArgumentException("Topic não pode ser vazio.");
             }
 
             var json = JsonSerializer.Serialize(message);

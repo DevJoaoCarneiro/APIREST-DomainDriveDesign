@@ -2,6 +2,7 @@
 using Application.Request;
 using Confluent.Kafka;
 using Domain.entities;
+using Infrastructure.Messaging.Handlers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,7 +29,7 @@ namespace Infrastructure.Messaging.Consumers
             _configuration = configuration;
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
-            _topic = _configuration[$"Kafka:Topics:PasswordReesend"];
+            _topic = _configuration[$"Kafka:Topics:ResetRequestEventDTO"];
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -42,70 +43,49 @@ namespace Infrastructure.Messaging.Consumers
             };
 
             using var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
-
-            try
+            consumer.Subscribe(_topic);
+            _logger.LogInformation($"[Kafka Consumer] Iniciado. Ouvindo tópico: {_topic}");
+            while (!stoppingToken.IsCancellationRequested)
             {
-                consumer.Subscribe(_topic);
-                _logger.LogInformation($"[Kafka Consumer] Iniciado. Ouvindo tópico: {_topic}");
-
-                while (!stoppingToken.IsCancellationRequested)
+                try
                 {
-                    try
-                    {
-                        var result = consumer.Consume(stoppingToken);
+                    var result = consumer.Consume(stoppingToken);
 
-                        if (result != null && !string.IsNullOrEmpty(result.Message.Value))
-                        {
-                            _logger.LogInformation($"[Kafka Consumer] Mensagem recebida: {result.Message.Value}");
+                    if (string.IsNullOrWhiteSpace(result?.Message?.Value))
+                        continue;
 
-                            await ProcessMessageAsync(result.Message.Value);
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var useCase = scope.ServiceProvider
+                        .GetRequiredService<IHandlePasswordReset>();
 
-                            consumer.Commit(result);
-                        }
-                    }
-                    catch (ConsumeException e)
+                    var dto = JsonSerializer.Deserialize<ResetRequestEventDTO>(
+                        result.Message.Value
+                    );
+
+                    if (dto is null)
                     {
-                        _logger.LogError($"Erro ao consumir mensagem Kafka: {e.Error.Reason}");
+                        _logger.LogWarning("Evento inválido.");
+                        continue;
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError($"Erro genérico no loop do consumidor: {ex.Message}");
-                        await Task.Delay(1000, stoppingToken);
-                    }
+
+                    await useCase.HandleAsync(dto);
+
+                    consumer.Commit(result);
+                }
+                catch (ConsumeException ex)
+                {
+                    _logger.LogError($"Erro Kafka: {ex.Error.Reason}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Erro inesperado: {ex.Message}");
+                    await Task.Delay(1000, stoppingToken);
                 }
             }
-            catch (OperationCanceledException)
-            {
-                consumer.Close();
-            }
 
+            consumer.Close();
         }
 
-
-        private async Task ProcessMessageAsync(string messageJson)
-        {
-            var eventData = JsonSerializer.Deserialize<ResetRequestEventDTO>(messageJson);
-
-            if (eventData == null)
-            {
-                _logger.LogWarning("Mensagem recebida mas estava vazia ou inválida.");
-                return;
-            }
-
-            using (var scope = _serviceScopeFactory.CreateScope())
-            {
-                var notifier = scope.ServiceProvider.GetRequiredService<IPasswordResetNotifier>();
-
-                var user = new User
-                {
-                    Name = eventData.UserName,
-                    Mail = eventData.UserEmail
-                };
-
-                await notifier.SendResetLinkAsync(user, eventData.Token);
-
-                _logger.LogInformation($"[Sucesso] Email de recuperação enviado para {eventData.UserEmail}");
-            }
-        }
+       
     }
 }

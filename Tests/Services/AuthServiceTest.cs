@@ -20,6 +20,7 @@ namespace Tests.Services
         private readonly IGoogleAuthService _googleAuthService = Substitute.For<IGoogleAuthService>();
         private readonly IRefreshTokenRepository _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
         private readonly IPasswordResetNotifier _notifier = Substitute.For<IPasswordResetNotifier>();
+        private readonly IEventTopicResolver _eventTopicResolver = Substitute.For<IEventTopicResolver>();
         private readonly IEventProducer _eventProducer = Substitute.For<IEventProducer>();
         private readonly AuthService _service;
 
@@ -32,6 +33,7 @@ namespace Tests.Services
                 _ipAddressService,
                 _googleAuthService,
                 _eventProducer,
+                _eventTopicResolver,
                 _notifier);
         }
 
@@ -539,8 +541,6 @@ namespace Tests.Services
             _userRepository.UpdateAsync(Arg.Any<User>())
                 .Returns(expetedUser);
 
-            _eventProducer.PublishAsync(expetedEvent)
-                .Returns(Task.CompletedTask);
 
             var result = await _service.RequestPasswordResetAsync(email);
 

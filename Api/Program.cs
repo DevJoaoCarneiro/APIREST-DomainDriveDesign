@@ -5,7 +5,9 @@ using Domain.Interfaces;
 using Domain.Repository;
 using Infrastructure.Context;
 using Infrastructure.ExternalServices;
+using Infrastructure.Messaging;
 using Infrastructure.Messaging.Consumers;
+using Infrastructure.Messaging.Handlers;
 using Infrastructure.Messaging.Producers;
 using Infrastructure.Provider;
 using Infrastructure.Repositories;
@@ -40,7 +42,8 @@ builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IPasswordResetNotifier, MailNotificationService>();
 builder.Services.AddScoped<IMailRedirectService, MailRedirectService>();
 builder.Services.AddScoped<IEventProducer, KafkaProducer>();
-
+builder.Services.AddScoped<IHandlePasswordReset, HandlePasswordResetEvent>();
+builder.Services.AddScoped<IEventTopicResolver, EventTopicResolver>();
 
 builder.Services.AddHostedService<PasswordResetConsumer>();
 
