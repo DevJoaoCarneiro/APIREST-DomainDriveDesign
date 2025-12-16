@@ -361,6 +361,133 @@ namespace Tests.Controller
             Assert.Equal(serviceResponse, objectResult.Value);
         }
 
+        [Fact]
+        public async Task ResetPassword_Should_Return_Ok_When_Request_Is_Successful()
+        {
+            var request = new CompletePasswordResetRequest
+            {
+                Token = "valid-token",
+                NewPassword = "NewPassword@123"
+            };
+
+            var serviceResponse = new ResetPasswordResponseDTO
+            {
+                Status = "success",
+                Message = "Password reset successfully"
+            };
+
+            _authService
+                .CompletePasswordResetAsync(request)
+                .Returns(serviceResponse);
+
+            var result = await _controller.ResetPassword(request);
+
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, objectResult.StatusCode);
+            Assert.Equal(serviceResponse, objectResult.Value);
+        }
+
+
+        [Fact]
+        public async Task ResetPassword_Should_Return_BadRequest_When_Token_Is_Invalid()
+        {
+            var request = new CompletePasswordResetRequest
+            {
+                Token = "invalid-token",
+                NewPassword = "NewPassword@123"
+            };
+
+            var serviceResponse = new ResetPasswordResponseDTO
+            {
+                Status = "invalid_token",
+                Message = "Invalid token"
+            };
+
+            _authService
+                .CompletePasswordResetAsync(request)
+                .Returns(serviceResponse);
+
+            var result = await _controller.ResetPassword(request);
+
+            var objectResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, objectResult.StatusCode);
+            Assert.Equal(serviceResponse, objectResult.Value);
+        }
+
+
+        [Fact]
+        public async Task ResetPassword_Should_Return_BadRequest_When_Token_Is_Expired()
+        {
+            var request = new CompletePasswordResetRequest
+            {
+                Token = "expired-token",
+                NewPassword = "NewPassword@123"
+            };
+
+            var serviceResponse = new ResetPasswordResponseDTO
+            {
+                Status = "expired_token",
+                Message = "Token expired"
+            };
+
+            _authService
+                .CompletePasswordResetAsync(request)
+                .Returns(serviceResponse);
+
+            var result = await _controller.ResetPassword(request);
+
+            var objectResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, objectResult.StatusCode);
+            Assert.Equal(serviceResponse, objectResult.Value);
+        }
+
+        [Fact]
+        public async Task ResetPassword_Should_Return_BadRequest_When_Request_Is_Invalid()
+        {
+            var request = new CompletePasswordResetRequest
+            {
+                Token = "",
+                NewPassword = ""
+            };
+
+            var serviceResponse = new ResetPasswordResponseDTO
+            {
+                Status = "invalid_request",
+                Message = "Invalid request"
+            };
+
+            _authService
+                .CompletePasswordResetAsync(request)
+                .Returns(serviceResponse);
+
+            var result = await _controller.ResetPassword(request);
+
+            var objectResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, objectResult.StatusCode);
+            Assert.Equal(serviceResponse, objectResult.Value);
+        }
+
+
+        [Fact]
+        public async Task ResetPassword_Should_Return_InternalServerError_When_Exception_Is_Thrown()
+        {
+            var request = new CompletePasswordResetRequest
+            {
+                Token = "valid-token",
+                NewPassword = "NewPassword@123"
+            };
+
+            _authService
+                .CompletePasswordResetAsync(request)
+                .Throws(new Exception("Database error"));
+
+            var result = await _controller.ResetPassword(request);
+
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, objectResult.StatusCode);
+
+            Assert.NotNull(objectResult.Value);
+        }
 
     }
 }

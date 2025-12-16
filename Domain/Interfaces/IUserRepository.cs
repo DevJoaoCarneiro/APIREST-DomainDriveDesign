@@ -17,5 +17,7 @@ namespace Domain.Repository
 
         Task<User> UpdateAsync(User user);
 
+        Task<User?> GetByResetTokenAsync(string resetToken);
+
     }
 }

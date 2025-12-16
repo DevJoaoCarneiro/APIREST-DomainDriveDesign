@@ -90,6 +90,8 @@ namespace Application.Services
 
         }
 
+        
+
         public async Task<AuthResponseDTO> LoginWithGoogleAsync(string idToken)
         {
 
@@ -309,6 +311,65 @@ namespace Application.Services
                 throw;
             }
             
+        }
+
+        public async Task<ResetPasswordResponseDTO> CompletePasswordResetAsync(CompletePasswordResetRequest request)
+        {
+
+            try
+            {
+                if (request.NewPassword != request.ConfirmNewPassword)
+                {
+                    return new ResetPasswordResponseDTO
+                    {
+                        Message = "New password and confirmation do not match",
+                        Status = "invalid_request"
+                    };
+                }
+
+
+                var user = await _userRepository.GetByResetTokenAsync(request.Token);
+
+                if (user == null)
+                {
+                    return new ResetPasswordResponseDTO
+                    {
+                        Message = "Invalid or expired reset token",
+                        Status = "invalid_token"
+                    };
+                }
+
+                if (user.PasswordResetTokenExpires < DateTime.UtcNow)
+                {
+                    return new ResetPasswordResponseDTO
+                    {
+                        Message = "Reset token has expired",
+                        Status = "expired_token"
+                    };
+                }
+
+               
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                user.PasswordResetTokenExpires = null;
+                user.PasswordResetToken = null;
+
+                await _userRepository.UpdateAsync(user);
+
+                return new ResetPasswordResponseDTO
+                {
+                    Message = "Password successfully updated",
+                    Status = "Success"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResetPasswordResponseDTO
+                {
+                    Message = $"Internal Error: {ex.Message}",
+                    Status = "error"
+                };
+            }
+           
         }
     }
 }
