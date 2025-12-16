@@ -113,5 +113,31 @@ namespace Api.controller
                 });
             }
         }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] CompletePasswordResetRequest request)
+        {
+            try
+            {
+                var result = await _authService.CompletePasswordResetAsync(request);
+                return result.Status switch
+                {
+                    "invalid_request" => BadRequest(result),
+                    "invalid_token" => BadRequest(result),
+                    "expired_token" => BadRequest(result),
+                    "error" => BadRequest(result),
+                    "success" => Ok(result),
+                    _ => Ok(result)
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Internal server error",
+                    detail = ex.Message
+                });
+            }
+        }
     }
 }
