@@ -20,11 +20,19 @@ namespace Tests.Services
         private readonly IGoogleAuthService _googleAuthService = Substitute.For<IGoogleAuthService>();
         private readonly IRefreshTokenRepository _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
         private readonly IPasswordResetNotifier _notifier = Substitute.For<IPasswordResetNotifier>();
+        private readonly IEventProducer _eventProducer = Substitute.For<IEventProducer>();
         private readonly AuthService _service;
 
         public AuthServiceTest()
         {
-            _service = new AuthService(_userRepository, _tokenService, _refreshTokenRepository, _ipAddressService, _googleAuthService, _notifier);
+            _service = new AuthService(
+                _userRepository,
+                _tokenService,
+                _refreshTokenRepository,
+                _ipAddressService,
+                _googleAuthService,
+                _eventProducer,
+                _notifier);
         }
 
         [Fact]
