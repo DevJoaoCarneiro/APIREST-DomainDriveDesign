@@ -473,5 +473,79 @@ namespace Tests.Services
             Assert.Equal("error", result.Status);
 
         }
+
+        [Fact]
+        public async void Should_Return_Invalid_Request_When_Email_Is_Empty()
+        {
+            string email = "";
+
+            var result = await _service.RequestPasswordResetAsync(email);
+
+            Assert.Equal("Email is required", result.Message);
+            Assert.Equal("invalid_request", result.Status);
+        }
+
+        [Fact]
+        public async void Should_Return_Not_Found_When_User_Does_Not_Exist_In_Password_Reset()
+        {
+            string email = "teste@gmail.com";
+
+            _userRepository.GetByEmailAsync(email)
+                .Returns((User)null);
+
+            var result = await _service.RequestPasswordResetAsync(email);
+
+            Assert.Equal("User not found", result.Message);
+            Assert.Equal("not_found", result.Status);
+
+        }
+
+        [Fact]
+        public async void Should_Return_Bad_Request_When_Exception_Occurs_During_Password_Reset()
+        {
+            string email = "teste@gmail.com";
+
+            _userRepository.GetByEmailAsync(email)
+                .ThrowsAsync(new Exception("Simulated error"));
+
+            var result = await _service.RequestPasswordResetAsync(email);
+
+            Assert.Equal("Internal Error: Simulated error", result.Message);
+            Assert.Equal("error", result.Status);
+        }
+
+        [Fact]
+        public async void Should_Request_Password_Reset_Successfully()
+        {
+            string email = "teste@gmail.com";
+
+            var expetedUser = new User
+            {
+                UserId = Guid.NewGuid(),
+                Name = "Teste",
+                Mail = email
+            };
+
+            var expetedEvent = new ResetRequestEventDTO
+            {
+                UserName = expetedUser.Name,
+                UserEmail = expetedUser.Mail,
+                Token = Guid.NewGuid().ToString(),
+            };
+
+            _userRepository.GetByEmailAsync(email)
+                .Returns(expetedUser);
+
+            _userRepository.UpdateAsync(Arg.Any<User>())
+                .Returns(expetedUser);
+
+            _eventProducer.PublishAsync(expetedEvent)
+                .Returns(Task.CompletedTask);
+
+            var result = await _service.RequestPasswordResetAsync(email);
+
+            Assert.Equal("If the email address is registered, we will send a recovery link.", result.Message);
+            Assert.Equal("Success", result.Status);
+        }
     }
 }

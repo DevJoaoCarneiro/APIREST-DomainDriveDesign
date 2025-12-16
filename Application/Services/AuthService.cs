@@ -291,7 +291,7 @@ namespace Application.Services
 
                 return new ResetPasswordResponseDTO
                 {
-                    Status = "success",
+                    Status = "Success",
                     Message = "If the email address is registered, we will send a recovery link."
                 };
             }
@@ -300,7 +300,7 @@ namespace Application.Services
                 return new ResetPasswordResponseDTO
                 {
                     Status = "error",
-                    Message = "Internal Error"+ex
+                    Message = $"Internal Error: {ex.Message}"
                 };
                 throw;
             }
