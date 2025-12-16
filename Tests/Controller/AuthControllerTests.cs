@@ -275,5 +275,92 @@ namespace Tests.Controller
 
             Assert.Equal(expectedExceptionMessage, detailValue);
         }
+
+        [Fact]
+        public async Task ForgotPassword_Should_Return_BadRequest_When_Request_Is_Invalid()
+        {
+            var mail = "invalid@mail";
+            var dto = new ForgotPasswordRequestDTO { Mail = mail };
+
+            var serviceResponse = new ResetPasswordResponseDTO
+            {
+                Status = "invalid_request",
+                Message = "Invalid email"
+            };
+
+            _authService.RequestPasswordResetAsync(mail).Returns(serviceResponse);
+
+            var result = await _controller.ForgotPassword(dto);
+
+            var objectResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, objectResult.StatusCode);
+            Assert.Equal(serviceResponse, objectResult.Value);
+        }
+
+
+        [Fact]
+        public async Task ForgotPassword_Should_Return_NotFound_When_User_Does_Not_Exist()
+        {
+            var mail = "notfound@mail.com";
+            var dto = new ForgotPasswordRequestDTO { Mail = mail };
+
+            var serviceResponse = new ResetPasswordResponseDTO
+            {
+                Status = "not_found",
+                Message = "User not found"
+            };
+
+            _authService.RequestPasswordResetAsync(mail).Returns(serviceResponse);
+
+            var result = await _controller.ForgotPassword(dto);
+
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(404, objectResult.StatusCode);
+            Assert.Equal(serviceResponse, objectResult.Value);
+        }
+
+        [Fact]
+        public async Task ForgotPassword_Should_Return_BadRequest_When_Service_Returns_Error()
+        {
+            var mail = "error@mail.com";
+            var dto = new ForgotPasswordRequestDTO { Mail = mail };
+
+            var serviceResponse = new ResetPasswordResponseDTO
+            {
+                Status = "error",
+                Message = "Unexpected error"
+            };
+
+            _authService.RequestPasswordResetAsync(mail).Returns(serviceResponse);
+
+            var result = await _controller.ForgotPassword(dto);
+
+            var objectResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, objectResult.StatusCode);
+            Assert.Equal(serviceResponse, objectResult.Value);
+        }
+
+        [Fact]
+        public async Task ForgotPassword_Should_Return_Ok_When_Request_Is_Successful()
+        {
+            var mail = "user@mail.com";
+            var dto = new ForgotPasswordRequestDTO { Mail = mail };
+
+            var serviceResponse = new ResetPasswordResponseDTO
+            {
+                Status = "success",
+                Message = "Password reset requested"
+            };
+
+            _authService.RequestPasswordResetAsync(mail).Returns(serviceResponse);
+
+            var result = await _controller.ForgotPassword(dto);
+
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, objectResult.StatusCode);
+            Assert.Equal(serviceResponse, objectResult.Value);
+        }
+
+
     }
 }
