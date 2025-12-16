@@ -322,7 +322,7 @@ namespace Application.Services
                 {
                     return new ResetPasswordResponseDTO
                     {
-                        Message = "Email is required",
+                        Message = "New password and confirmation do not match",
                         Status = "invalid_request"
                     };
                 }
@@ -334,7 +334,7 @@ namespace Application.Services
                 {
                     return new ResetPasswordResponseDTO
                     {
-                        Message = "Invalid token",
+                        Message = "Invalid or expired reset token",
                         Status = "invalid_token"
                     };
                 }
@@ -343,7 +343,7 @@ namespace Application.Services
                 {
                     return new ResetPasswordResponseDTO
                     {
-                        Message = "Token expired",
+                        Message = "Reset token has expired",
                         Status = "expired_token"
                     };
                 }
@@ -361,11 +361,11 @@ namespace Application.Services
                     Status = "Success"
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return new ResetPasswordResponseDTO
                 {
-                    Message = "Internal Error",
+                    Message = $"Internal Error: {ex.Message}",
                     Status = "error"
                 };
             }

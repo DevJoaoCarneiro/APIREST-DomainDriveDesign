@@ -547,5 +547,109 @@ namespace Tests.Services
             Assert.Equal("If the email address is registered, we will send a recovery link.", result.Message);
             Assert.Equal("Success", result.Status);
         }
+
+        [Fact]
+        public async Task Should_Return_Invalid_Request_When_Reset_Token_Is_Empty()
+        {
+            var request = new CompletePasswordResetRequest
+            {
+                Token = Guid.NewGuid().ToString(),
+                NewPassword = "NewPassword123!",
+                ConfirmNewPassword = "DifferentPassword123!"
+            };
+
+            var result = await _service.CompletePasswordResetAsync(request);
+
+            Assert.Equal("New password and confirmation do not match", result.Message);
+            Assert.Equal("invalid_request", result.Status);
+        }
+
+        [Fact]
+        public async Task Should_Return_Not_Found_When_User_Does_Not_Exist_In_Complete_Password_Reset()
+        {
+            var request = new CompletePasswordResetRequest
+            {
+                Token = Guid.NewGuid().ToString(),
+                NewPassword = "NewPassword123!",
+                ConfirmNewPassword = "NewPassword123!"
+            };
+
+            _userRepository.GetByResetTokenAsync(request.Token)
+                .Returns((User)null);
+
+            var result = await _service.CompletePasswordResetAsync(request);
+
+            Assert.Equal("Invalid or expired reset token", result.Message);
+            Assert.Equal("invalid_token", result.Status);
+        }
+
+        [Fact]
+        public async Task Should_Return_Expired_Token_When_Reset_Token_Has_Expired()
+        {
+            var request = new CompletePasswordResetRequest
+            {
+                Token = Guid.NewGuid().ToString(),
+                NewPassword = "NewPassword123!",
+                ConfirmNewPassword = "NewPassword123!"
+            };
+            var user = new User
+            {
+                PasswordResetToken = request.Token,
+                PasswordResetTokenExpires = DateTime.UtcNow.AddHours(-1)
+            };
+
+            _userRepository.GetByResetTokenAsync(request.Token)
+                .Returns(user);
+
+            var result = await _service.CompletePasswordResetAsync(request);
+
+            Assert.Equal("Reset token has expired", result.Message);
+            Assert.Equal("expired_token", result.Status);
+        }
+
+        [Fact]
+        public async Task Should_Return_Sucess_When_No_Error()
+        {
+            var request = new CompletePasswordResetRequest
+            {
+                Token = Guid.NewGuid().ToString(),
+                NewPassword = "NewPassword123!",
+                ConfirmNewPassword = "NewPassword123!"
+            };
+            var user = new User
+            {
+                PasswordResetToken = request.Token,
+                PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1)
+            };
+
+
+            _userRepository.GetByResetTokenAsync(request.Token)
+                .Returns(user);
+
+            _userRepository.UpdateAsync(Arg.Any<User>())
+                .Returns(user);
+
+            var result = await _service.CompletePasswordResetAsync(request);
+
+            Assert.Equal("Password successfully updated", result.Message);
+            Assert.Equal("Success", result.Status);
+        }
+
+        [Fact]
+        public async Task Should_Return_Exception_When_Error_Occurs()
+        {
+            var request = new CompletePasswordResetRequest
+            {
+                Token = Guid.NewGuid().ToString(),
+                NewPassword = "NewPassword123!",
+                ConfirmNewPassword = "NewPassword123!"
+            };
+            _userRepository.GetByResetTokenAsync(request.Token)
+                .ThrowsAsync(new Exception("Simulated error"));
+
+            var result = await _service.CompletePasswordResetAsync(request);
+            Assert.Equal("Internal Error: Simulated error", result.Message);
+            Assert.Equal("error", result.Status);
+        }
     }
 }
