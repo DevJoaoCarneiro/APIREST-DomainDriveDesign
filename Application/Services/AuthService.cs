@@ -15,6 +15,7 @@ namespace Application.Services
         private readonly IIpAddressService _ipAddressService;
         private readonly IGoogleAuthService _googleAuthService;
         private readonly IEventProducer _eventProducer;
+        private readonly IEventTopicResolver _eventTopicResolver;
         private readonly IPasswordResetNotifier _notifier;
 
         public AuthService(
@@ -24,6 +25,7 @@ namespace Application.Services
             IIpAddressService ipAddressService,
             IGoogleAuthService googleAuthService,
             IEventProducer eventProducer,
+            IEventTopicResolver eventTopicResolver,
             IPasswordResetNotifier notifier)
         {
             _userRepository = userRepository;
@@ -32,6 +34,7 @@ namespace Application.Services
             _ipAddressService = ipAddressService;
             _googleAuthService = googleAuthService;
             _eventProducer = eventProducer;
+            _eventTopicResolver = eventTopicResolver;
             _notifier = notifier;
         }
 
@@ -287,7 +290,8 @@ namespace Application.Services
                     Token = token
                 };
 
-                _eventProducer.PublishAsync(eventMessage);
+                var topic = _eventTopicResolver.Resolve<ResetRequestEventDTO>();
+                await _eventProducer.PublishAsync(topic, eventMessage);
 
                 return new ResetPasswordResponseDTO
                 {

@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Application.Interfaces
 {
-    public interface IEventProducer
+    public interface IEventTopicResolver
     {
-        Task PublishAsync<T>(string topic, T message);
+        string Resolve<T>();
     }
 }
