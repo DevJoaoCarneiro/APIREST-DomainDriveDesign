@@ -53,7 +53,9 @@ namespace Application.Service
                         City = userRequestDTO.UserAddress.City,
                         State = userRequestDTO.UserAddress.State,
                         ZipCode = userRequestDTO.UserAddress.ZipCode
-                    }
+                    },
+                    CreatedAt = DateTime.UtcNow,
+
                 };
 
                 await _userRepository.AddAsync(newUser);
@@ -64,6 +66,7 @@ namespace Application.Service
                     Status = "Success",
                     Data = new UserData
                     {
+                        UserId = newUser.UserId,
                         Name = newUser.Name,
                         Mail = newUser.Mail
                     }

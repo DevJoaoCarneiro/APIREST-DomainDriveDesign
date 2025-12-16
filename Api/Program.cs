@@ -5,6 +5,8 @@ using Domain.Interfaces;
 using Domain.Repository;
 using Infrastructure.Context;
 using Infrastructure.ExternalServices;
+using Infrastructure.Messaging.Consumers;
+using Infrastructure.Messaging.Producers;
 using Infrastructure.Provider;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
@@ -35,6 +37,12 @@ builder.Services.AddScoped<ITokenService, JwtTokenProvider>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IIpAddressService, IpAddressService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+builder.Services.AddScoped<IPasswordResetNotifier, MailNotificationService>();
+builder.Services.AddScoped<IMailRedirectService, MailRedirectService>();
+builder.Services.AddScoped<IEventProducer, KafkaProducer>();
+
+
+builder.Services.AddHostedService<PasswordResetConsumer>();
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>

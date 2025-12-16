@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Application.Helpers;
+using Application.Interfaces;
 using Application.Request;
 using Application.Response;
 using Domain.Interfaces;
@@ -13,17 +14,26 @@ namespace Application.Services
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IIpAddressService _ipAddressService;
         private readonly IGoogleAuthService _googleAuthService;
+        private readonly IEventProducer _eventProducer;
+        private readonly IPasswordResetNotifier _notifier;
 
-        public AuthService(IUserRepository userRepository, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, IIpAddressService ipAddressService, IGoogleAuthService googleAuthService)
+        public AuthService(
+            IUserRepository userRepository,
+            ITokenService tokenService,
+            IRefreshTokenRepository refreshTokenRepository,
+            IIpAddressService ipAddressService,
+            IGoogleAuthService googleAuthService,
+            IEventProducer eventProducer,
+            IPasswordResetNotifier notifier)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;
             _refreshTokenRepository = refreshTokenRepository;
             _ipAddressService = ipAddressService;
             _googleAuthService = googleAuthService;
+            _eventProducer = eventProducer;
+            _notifier = notifier;
         }
-
-
 
         public async Task<LoginResponseDTO> AuthenticateLogin(LoginRequestDTO loginRequestDTO)
         {
@@ -237,6 +247,64 @@ namespace Application.Services
                 };
             }
 
+        }
+        public async Task<ResetPasswordResponseDTO> RequestPasswordResetAsync(string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                {
+                    return new ResetPasswordResponseDTO
+                    {
+                        Message = "Email is required",
+                        Status = "invalid_request"
+                    };
+                }
+
+                var user = await _userRepository.GetByEmailAsync(email);
+
+                if (user == null)
+                {
+                    return new ResetPasswordResponseDTO
+                    {
+                        Message = "User not found",
+                        Status = "not_found",
+                    };
+                }
+
+                var token = Guid.NewGuid().ToString();
+
+
+                user.PasswordResetToken = token;
+                user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1);
+
+                await _userRepository.UpdateAsync(user);
+
+                var eventMessage = new ResetRequestEventDTO
+                {
+                    UserEmail = user.Mail,
+                    UserName = user.Name,
+                    Token = token
+                };
+
+                _eventProducer.PublishAsync(eventMessage);
+
+                return new ResetPasswordResponseDTO
+                {
+                    Status = "success",
+                    Message = "If the email address is registered, we will send a recovery link."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResetPasswordResponseDTO
+                {
+                    Status = "error",
+                    Message = "Internal Error"+ex
+                };
+                throw;
+            }
+            
         }
     }
 }
