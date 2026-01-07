@@ -141,11 +141,11 @@ namespace Tests.E2E.Features
         [global::Xunit.SkippableFactAttribute(DisplayName="Realizar cadastro de um novo usuário com sucesso")]
         [global::Xunit.TraitAttribute("FeatureTitle", "Cadastro de Usuário")]
         [global::Xunit.TraitAttribute("Description", "Realizar cadastro de um novo usuário com sucesso")]
-        [global::Xunit.TraitAttribute("Category", "Sucess")]
+        [global::Xunit.TraitAttribute("Category", "Sucesso")]
         public async global::System.Threading.Tasks.Task RealizarCadastroDeUmNovoUsuarioComSucesso()
         {
             string[] tagsOfScenario = new string[] {
-                    "Sucess"};
+                    "Sucesso"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "0";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Realizar cadastro de um novo usuário com sucesso", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
