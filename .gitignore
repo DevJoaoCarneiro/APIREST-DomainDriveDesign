@@ -126,8 +126,7 @@ ipch/
 *.vspx
 *.sap
 
-# Visual Studio Trace Files
-*.e2e
+!Tests.E2E/
 
 # TFS 2012 Local Workspace
 $tf/
