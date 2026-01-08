@@ -16,10 +16,12 @@ namespace Tests.E2E.StepDefinitions
     {
         private readonly UserDriver _driver;
         private object? _requestData;
+        private readonly TestWebFactory _factory;
 
         public UserRegistrationStepDefinitions(TestWebFactory factory)
         {
-            var client = factory.CreateClient();
+            _factory = factory;
+            var client = _factory.CreateClient();
             _driver = new UserDriver(client);
         }
 
