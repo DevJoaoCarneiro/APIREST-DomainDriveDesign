@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <Folder Include="StepDefinitions\" />
-    <Folder Include="Support\" />
   </ItemGroup>
 
   <ItemGroup>
