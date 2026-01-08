@@ -23,8 +23,8 @@ namespace Tests.E2E.StepDefinitions
             _driver = new UserDriver(client);
         }
 
-        [Given("que eu informo os seguintes dados de usuário:")]
-        public void GivenQueEuInformoOsSeguintesDados(DataTable table)
+        [Given("I provide the following user data:")]
+        public void GivenIProvideTheFollowingUserData(DataTable table)
         {
             var row = table.Rows[0];
 
@@ -44,47 +44,48 @@ namespace Tests.E2E.StepDefinitions
             };
         }
 
-        [When("eu envio uma requisição POST para {string}")]
-        public async Task WhenEuEnvioUmaRequisicaoPostPara(string endpoint)
+        [When("I send a POST request to {string}")]
+        public async Task WhenISendAPostRequestTo(string endpoint)
         {
             await _driver.RegisterUser(_requestData!);
         }
 
-        [Then("o status code da resposta deve ser {int}")]
-        public async Task ThenOStatusCodeDaRespostaDeveSer(int statusCode)
+        [Then("the response status code should be {int}")]
+        public async Task ThenTheResponseStatusCodeShouldBe(int statusCode)
         {
             if (_driver.LastResponse == null)
-                throw new Exception("A resposta da API está nula. A requisição foi enviada?");
+                throw new Exception("API response is null.");
 
-            if ((int)_driver.LastResponse.StatusCode != statusCode)
+            var actualStatusCode = (int)_driver.LastResponse.StatusCode;
+
+            if (actualStatusCode != statusCode)
             {
                 var errorContent = await _driver.LastResponse.Content.ReadAsStringAsync();
-                throw new Exception($"Esperava status {statusCode} mas recebi {(int)_driver.LastResponse.StatusCode}. Detalhes: {errorContent}");
+                throw new Exception($"Expected {statusCode} but received {actualStatusCode}. Details: {errorContent}");
             }
 
-            Assert.Equal(statusCode, (int)_driver.LastResponse.StatusCode);
+            Assert.Equal(statusCode, actualStatusCode);
         }
 
-        [Then("o corpo da resposta {string} deve ser {string}")]
-        public async Task ThenOCorpoDaRespostaDeveSer(string campo, string valorEsperado)
+        [Then("the response body {string} should be {string}")]
+        public async Task ThenTheResponseBodyShouldBe(string field, string expectedValue)
         {
             if (_driver.LastResponse == null)
-                throw new Exception("A resposta da API está nula.");
+                throw new Exception("API response is null.");
 
             var content = await _driver.LastResponse.Content.ReadAsStringAsync();
-
             using var json = JsonDocument.Parse(content);
 
-            var propriedade = json.RootElement.EnumerateObject()
-                .FirstOrDefault(p => string.Equals(p.Name, campo, StringComparison.OrdinalIgnoreCase));
+            var property = json.RootElement.EnumerateObject()
+                .FirstOrDefault(p => string.Equals(p.Name, field, StringComparison.OrdinalIgnoreCase));
 
-            if (propriedade.Value.ValueKind == JsonValueKind.Undefined)
+            if (property.Value.ValueKind == JsonValueKind.Undefined)
             {
-                throw new KeyNotFoundException($"A propriedade '{campo}' não foi encontrada no JSON de resposta: {content}");
+                throw new KeyNotFoundException($"Property '{field}' not found in JSON response: {content}");
             }
 
-            var valorAtual = propriedade.Value.GetString();
-            Assert.Equal(valorEsperado, valorAtual);
+            var actualValue = property.Value.GetString();
+            Assert.Equal(expectedValue, actualValue);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Tests.E2E.Features
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::Xunit.TraitAttribute("Category", "api")]
     [global::Xunit.TraitAttribute("Category", "user_management")]
-    public partial class CadastroDeUsuarioFeature : object, global::Xunit.IClassFixture<CadastroDeUsuarioFeature.FixtureData>, global::Xunit.IAsyncLifetime
+    public partial class UserRegistrationFeature : object, global::Xunit.IClassFixture<UserRegistrationFeature.FixtureData>, global::Xunit.IAsyncLifetime
     {
         
         private global::Reqnroll.ITestRunner testRunner;
@@ -28,15 +28,15 @@ namespace Tests.E2E.Features
                 "api",
                 "user_management"};
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("pt-br"), "Features", "Cadastro de Usuário", "  Como um novo visitante\r\n  Eu quero criar uma conta\r\n  Para que eu possa acessar" +
-                " o sistema", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags, InitializeCucumberMessages());
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en-US"), "Features", "User Registration", "  As a new visitor\r\n  I want to create an account\r\n  So that I can access the sys" +
+                "tem", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags, InitializeCucumberMessages());
         
         private global::Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
 #line 1 "CreateUser.feature"
 #line hidden
         
-        public CadastroDeUsuarioFeature(CadastroDeUsuarioFeature.FixtureData fixtureData, global::Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public UserRegistrationFeature(UserRegistrationFeature.FixtureData fixtureData, global::Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
         }
@@ -138,20 +138,20 @@ namespace Tests.E2E.Features
             await this.TestTearDownAsync();
         }
         
-        [global::Xunit.SkippableFactAttribute(DisplayName="Realizar cadastro de um novo usuário com sucesso")]
-        [global::Xunit.TraitAttribute("FeatureTitle", "Cadastro de Usuário")]
-        [global::Xunit.TraitAttribute("Description", "Realizar cadastro de um novo usuário com sucesso")]
-        [global::Xunit.TraitAttribute("Category", "Sucesso")]
-        public async global::System.Threading.Tasks.Task RealizarCadastroDeUmNovoUsuarioComSucesso()
+        [global::Xunit.SkippableFactAttribute(DisplayName="Successfully register a new user")]
+        [global::Xunit.TraitAttribute("FeatureTitle", "User Registration")]
+        [global::Xunit.TraitAttribute("Description", "Successfully register a new user")]
+        [global::Xunit.TraitAttribute("Category", "Success")]
+        public async global::System.Threading.Tasks.Task SuccessfullyRegisterANewUser()
         {
             string[] tagsOfScenario = new string[] {
-                    "Sucesso"};
+                    "Success"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "0";
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Realizar cadastro de um novo usuário com sucesso", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Successfully register a new user", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 9
+#line 8
   this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -179,20 +179,20 @@ namespace Tests.E2E.Features
                             "São Paulo",
                             "SP",
                             "01001000"});
-#line 10
-    await testRunner.GivenAsync("que eu informo os seguintes dados de usuário:", ((string)(null)), table1, "Dado ");
+#line 9
+    await testRunner.GivenAsync("I provide the following user data:", ((string)(null)), table1, "Given ");
+#line hidden
+#line 12
+    await testRunner.WhenAsync("I send a POST request to \"/api/users\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 13
-    await testRunner.WhenAsync("eu envio uma requisição POST para \"/api/users\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Quando ");
+    await testRunner.ThenAsync("the response status code should be 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 14
-    await testRunner.ThenAsync("o status code da resposta deve ser 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Então ");
+    await testRunner.AndAsync("the response body \"status\" should be \"Success\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 15
-    await testRunner.AndAsync("o corpo da resposta \"status\" deve ser \"Success\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "E ");
-#line hidden
-#line 16
-    await testRunner.AndAsync("o corpo da resposta \"message\" deve ser \"User created successfully\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "E ");
+    await testRunner.AndAsync("the response body \"message\" should be \"User created successfully\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -205,12 +205,12 @@ namespace Tests.E2E.Features
             
             async global::System.Threading.Tasks.Task global::Xunit.IAsyncLifetime.InitializeAsync()
             {
-                await CadastroDeUsuarioFeature.FeatureSetupAsync();
+                await UserRegistrationFeature.FeatureSetupAsync();
             }
             
             async global::System.Threading.Tasks.Task global::Xunit.IAsyncLifetime.DisposeAsync()
             {
-                await CadastroDeUsuarioFeature.FeatureTearDownAsync();
+                await UserRegistrationFeature.FeatureTearDownAsync();
             }
         }
     }

@@ -1,16 +1,15 @@
-﻿# language: pt-br
-@api @user_management
-Funcionalidade: Cadastro de Usuário
-  Como um novo visitante
-  Eu quero criar uma conta
-  Para que eu possa acessar o sistema
+﻿@api @user_management
+Feature: User Registration
+  As a new visitor
+  I want to create an account
+  So that I can access the system
 
-  @Sucesso
-  Cenário: Realizar cadastro de um novo usuário com sucesso
-    Dado que eu informo os seguintes dados de usuário:
+  @Success
+  Scenario: Successfully register a new user
+    Given I provide the following user data:
       | Name           | Mail             | Password | Street    | Number | City      | State | ZipCode  |
       | Fulano Ciclano | fulano@email.com | 123456   | Rua Teste | 100    | São Paulo | SP    | 01001000 |
-    Quando eu envio uma requisição POST para "/api/users"
-    Então o status code da resposta deve ser 200
-    E o corpo da resposta "status" deve ser "Success"
-    E o corpo da resposta "message" deve ser "User created successfully"
+    When I send a POST request to "/api/users"
+    Then the response status code should be 200
+    And the response body "status" should be "Success"
+    And the response body "message" should be "User created successfully"
