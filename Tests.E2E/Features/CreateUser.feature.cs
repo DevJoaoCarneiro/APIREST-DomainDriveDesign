@@ -28,7 +28,7 @@ namespace Tests.E2E.Features
                 "api",
                 "user_management"};
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en-US"), "Features", "Cadastro de Usuário", "  Como um novo visitante\r\n  Eu quero criar uma conta\r\n  Para que eu possa acessar" +
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("pt-br"), "Features", "Cadastro de Usuário", "  Como um novo visitante\r\n  Eu quero criar uma conta\r\n  Para que eu possa acessar" +
                 " o sistema", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags, InitializeCucumberMessages());
         
         private global::Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
@@ -151,7 +151,7 @@ namespace Tests.E2E.Features
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Realizar cadastro de um novo usuário com sucesso", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 8
+#line 9
   this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -179,20 +179,20 @@ namespace Tests.E2E.Features
                             "São Paulo",
                             "SP",
                             "01001000"});
-#line 9
-    await testRunner.GivenAsync("que eu informo os seguintes dados de usuário:", ((string)(null)), table1, "Given ");
-#line hidden
-#line 12
-    await testRunner.WhenAsync("eu envio uma requisição POST para \"/api/users\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line 10
+    await testRunner.GivenAsync("que eu informo os seguintes dados de usuário:", ((string)(null)), table1, "Dado ");
 #line hidden
 #line 13
-    await testRunner.ThenAsync("o status code da resposta deve ser 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.WhenAsync("eu envio uma requisição POST para \"/api/users\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Quando ");
 #line hidden
 #line 14
-    await testRunner.AndAsync("o corpo da resposta \"status\" deve ser \"Success\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.ThenAsync("o status code da resposta deve ser 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Então ");
 #line hidden
 #line 15
-    await testRunner.AndAsync("o corpo da resposta \"message\" deve ser \"User created successfully\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("o corpo da resposta \"status\" deve ser \"Success\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "E ");
+#line hidden
+#line 16
+    await testRunner.AndAsync("o corpo da resposta \"message\" deve ser \"User created successfully\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "E ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

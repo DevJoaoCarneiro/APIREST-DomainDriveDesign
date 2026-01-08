@@ -23,8 +23,8 @@ namespace Tests.E2E.StepDefinitions
             _driver = new UserDriver(client);
         }
 
-        [Given(@"que eu informo os seguintes dados de usuário:")]
-        public void GivenQueEuInformoOsSeguintesDados(Table table)
+        [Given("que eu informo os seguintes dados de usuário:")]
+        public void GivenQueEuInformoOsSeguintesDados(DataTable table)
         {
             var row = table.Rows[0];
 
@@ -44,27 +44,34 @@ namespace Tests.E2E.StepDefinitions
             };
         }
 
-        [When(@"eu envio uma requisição POST para ""(.*)""")]
+        [When("eu envio uma requisição POST para {string}")]
         public async Task WhenEuEnvioUmaRequisicaoPostPara(string endpoint)
         {
             await _driver.RegisterUser(_requestData!);
         }
 
-        [Then(@"o status code da resposta deve ser (.*)")]
+        [Then("o status code da resposta deve ser {int}")]
         public async Task ThenOStatusCodeDaRespostaDeveSer(int statusCode)
         {
-            if ((int)_driver.LastResponse!.StatusCode != statusCode)
+            if (_driver.LastResponse == null)
+                throw new Exception("A resposta da API está nula. A requisição foi enviada?");
+
+            if ((int)_driver.LastResponse.StatusCode != statusCode)
             {
                 var errorContent = await _driver.LastResponse.Content.ReadAsStringAsync();
                 throw new Exception($"Esperava status {statusCode} mas recebi {(int)_driver.LastResponse.StatusCode}. Detalhes: {errorContent}");
             }
+
             Assert.Equal(statusCode, (int)_driver.LastResponse.StatusCode);
         }
 
-        [Then(@"o corpo da resposta ""(.*)"" deve ser ""(.*)""")]
+        [Then("o corpo da resposta {string} deve ser {string}")]
         public async Task ThenOCorpoDaRespostaDeveSer(string campo, string valorEsperado)
         {
-            var content = await _driver.LastResponse!.Content.ReadAsStringAsync();
+            if (_driver.LastResponse == null)
+                throw new Exception("A resposta da API está nula.");
+
+            var content = await _driver.LastResponse.Content.ReadAsStringAsync();
 
             using var json = JsonDocument.Parse(content);
 
