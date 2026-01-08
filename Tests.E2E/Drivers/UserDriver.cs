@@ -1,4 +1,7 @@
-﻿using System.Net.Http.Json;
+﻿using Confluent.Kafka;
+using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 
 public class UserDriver
 {
@@ -12,6 +15,10 @@ public class UserDriver
 
     public async Task RegisterUser(object userRequest)
     {
-        LastResponse = await _httpClient.PostAsJsonAsync("/api/users", userRequest);
+        var json = JsonSerializer.Serialize(userRequest);
+
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        LastResponse = await _httpClient.PostAsync("/api/users", content);
     }
 }

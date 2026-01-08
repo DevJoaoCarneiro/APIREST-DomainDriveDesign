@@ -2,11 +2,10 @@ using Reqnroll;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Net.Http;
 
-using Tests.E2E.Support;
 using Xunit;
 
 namespace Tests.E2E.StepDefinitions
@@ -14,24 +13,26 @@ namespace Tests.E2E.StepDefinitions
     [Binding]
     public class UserRegistrationStepDefinitions
     {
-        private readonly TestWebFactory _factory;
+        private readonly ScenarioContext _scenarioContext;
+
         private UserDriver? _driver;
         private object? _requestData;
 
-        public UserRegistrationStepDefinitions(TestWebFactory factory)
+        public UserRegistrationStepDefinitions(ScenarioContext scenarioContext)
         {
-            _factory = factory;
+            _scenarioContext = scenarioContext;
         }
 
         [Given("I provide the following user data:")]
         public void GivenIProvideTheFollowingUserData(DataTable table)
         {
             var row = table.Rows[0];
+
             _requestData = new
             {
                 Name = row["Name"],
                 Mail = row["Mail"],
-                password = row["Password"],
+                Password = row["Password"],
                 UserAddress = new
                 {
                     Street = row["Street"],
@@ -42,14 +43,15 @@ namespace Tests.E2E.StepDefinitions
                 }
             };
 
-            var client = _factory.CreateClient();
+            var client = _scenarioContext.Get<HttpClient>();
             _driver = new UserDriver(client);
         }
 
         [When("I send a POST request to {string}")]
         public async Task WhenISendAPostRequestTo(string endpoint)
         {
-            if (_driver == null) throw new Exception("Driver not initialized. Did you call Given?");
+            if (_driver == null)
+                throw new InvalidOperationException("Driver not initialized. Did you call Given step?");
 
             await _driver.RegisterUser(_requestData!);
         }
@@ -57,8 +59,8 @@ namespace Tests.E2E.StepDefinitions
         [Then("the response status code should be {int}")]
         public async Task ThenTheResponseStatusCodeShouldBe(int statusCode)
         {
-            if (_driver.LastResponse == null)
-                throw new Exception("API response is null.");
+            if (_driver?.LastResponse == null)
+                throw new InvalidOperationException("API response is null.");
 
             var actualStatusCode = (int)_driver.LastResponse.StatusCode;
 
@@ -74,21 +76,25 @@ namespace Tests.E2E.StepDefinitions
         [Then("the response body {string} should be {string}")]
         public async Task ThenTheResponseBodyShouldBe(string field, string expectedValue)
         {
-            if (_driver.LastResponse == null)
-                throw new Exception("API response is null.");
+            if (_driver?.LastResponse == null)
+                throw new InvalidOperationException("API response is null.");
 
             var content = await _driver.LastResponse.Content.ReadAsStringAsync();
+
             using var json = JsonDocument.Parse(content);
 
-            var property = json.RootElement.EnumerateObject()
-                .FirstOrDefault(p => string.Equals(p.Name, field, StringComparison.OrdinalIgnoreCase));
+            var property = json.RootElement
+                .EnumerateObject()
+                .FirstOrDefault(p => p.Name.Equals(field, StringComparison.OrdinalIgnoreCase));
 
             if (property.Value.ValueKind == JsonValueKind.Undefined)
             {
-                throw new KeyNotFoundException($"Property '{field}' not found in JSON response: {content}");
+                throw new KeyNotFoundException(
+                    $"Property '{field}' not found in JSON response: {content}");
             }
 
             var actualValue = property.Value.GetString();
+
             Assert.Equal(expectedValue, actualValue);
         }
     }
