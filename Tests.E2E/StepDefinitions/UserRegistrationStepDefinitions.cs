@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Tests.E2E.Drivers;
+
 using Tests.E2E.Support;
 using Xunit;
 
@@ -14,22 +14,19 @@ namespace Tests.E2E.StepDefinitions
     [Binding]
     public class UserRegistrationStepDefinitions
     {
-        private readonly UserDriver _driver;
-        private object? _requestData;
         private readonly TestWebFactory _factory;
+        private UserDriver? _driver;
+        private object? _requestData;
 
         public UserRegistrationStepDefinitions(TestWebFactory factory)
         {
             _factory = factory;
-            var client = _factory.CreateClient();
-            _driver = new UserDriver(client);
         }
 
         [Given("I provide the following user data:")]
         public void GivenIProvideTheFollowingUserData(DataTable table)
         {
             var row = table.Rows[0];
-
             _requestData = new
             {
                 Name = row["Name"],
@@ -44,11 +41,16 @@ namespace Tests.E2E.StepDefinitions
                     ZipCode = row["ZipCode"]
                 }
             };
+
+            var client = _factory.CreateClient();
+            _driver = new UserDriver(client);
         }
 
         [When("I send a POST request to {string}")]
         public async Task WhenISendAPostRequestTo(string endpoint)
         {
+            if (_driver == null) throw new Exception("Driver not initialized. Did you call Given?");
+
             await _driver.RegisterUser(_requestData!);
         }
 
