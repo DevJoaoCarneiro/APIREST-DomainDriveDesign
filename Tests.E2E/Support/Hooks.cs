@@ -14,7 +14,7 @@ namespace Tests.E2E.Support
             _container = container;
         }
 
-        [BeforeScenario]
+        [BeforeScenario(Order = 0)]
         public void BeforeScenario()
         {
             var factory = new TestWebFactory();

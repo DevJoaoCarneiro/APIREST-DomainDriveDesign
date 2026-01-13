@@ -1,4 +1,5 @@
 using Reqnroll;
+using Reqnroll.BoDi;
 using System.Text.Json;
 
 using Xunit;
@@ -8,12 +9,19 @@ namespace Tests.E2E.StepDefinitions
     [Binding]
     public class UserRegistrationStepDefinitions
     {
-
+        private readonly IObjectContainer _container;
         private UserDriver? _driver;
         private object? _requestData;
 
-        public UserRegistrationStepDefinitions(HttpClient httpClient)
+        public UserRegistrationStepDefinitions(IObjectContainer container)
         {
+            _container = container;
+        }
+
+        [BeforeScenario]
+        public void Setup()
+        {
+            var httpClient = _container.Resolve<HttpClient>();
             _driver = new UserDriver(httpClient);
         }
 
