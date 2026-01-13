@@ -1,10 +1,5 @@
 using Reqnroll;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Net.Http;
 
 using Xunit;
 
@@ -13,14 +8,13 @@ namespace Tests.E2E.StepDefinitions
     [Binding]
     public class UserRegistrationStepDefinitions
     {
-        private readonly ScenarioContext _scenarioContext;
 
         private UserDriver? _driver;
         private object? _requestData;
 
-        public UserRegistrationStepDefinitions(ScenarioContext scenarioContext)
+        public UserRegistrationStepDefinitions(HttpClient httpClient)
         {
-            _scenarioContext = scenarioContext;
+            _driver = new UserDriver(httpClient);
         }
 
         [Given("I provide the following user data:")]
@@ -43,8 +37,6 @@ namespace Tests.E2E.StepDefinitions
                 }
             };
 
-            var client = _scenarioContext.Get<HttpClient>();
-            _driver = new UserDriver(client);
         }
 
         [When("I send a POST request to {string}")]

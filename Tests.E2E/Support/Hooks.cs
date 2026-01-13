@@ -1,4 +1,5 @@
 ﻿using Reqnroll;
+using Reqnroll.BoDi;
 using Tests.E2E.Support;
 
 namespace Tests.E2E.Support
@@ -6,11 +7,11 @@ namespace Tests.E2E.Support
     [Binding]
     public class Hooks
     {
-        private readonly ScenarioContext _scenarioContext;
+        private readonly IObjectContainer _container;
 
-        public Hooks(ScenarioContext scenarioContext)
+        public Hooks(IObjectContainer container)
         {
-            _scenarioContext = scenarioContext;
+            _container = container;
         }
 
         [BeforeScenario]
@@ -19,17 +20,15 @@ namespace Tests.E2E.Support
             var factory = new TestWebFactory();
             var client = factory.CreateClient();
 
-            _scenarioContext.Set(factory);
-            _scenarioContext.Set(client);
+            _container.RegisterInstanceAs(factory);
+            _container.RegisterInstanceAs(client);
         }
 
         [AfterScenario]
         public void AfterScenario()
         {
-            if (_scenarioContext.TryGetValue<TestWebFactory>(out var factory))
-            {
-                factory.Dispose();
-            }
+            var factory = _container.Resolve<TestWebFactory>();
+            factory.Dispose();
         }
     }
 }
