@@ -21,7 +21,7 @@ namespace Tests.E2E.Support
             var client = factory.CreateClient();
 
             _container.RegisterInstanceAs(factory);
-            _container.RegisterInstanceAs(client);
+            _container.RegisterInstanceAs(client, dispose: false);
         }
     }
 }
