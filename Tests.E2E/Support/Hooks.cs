@@ -23,12 +23,5 @@ namespace Tests.E2E.Support
             _container.RegisterInstanceAs(factory);
             _container.RegisterInstanceAs(client);
         }
-
-        [AfterScenario]
-        public void AfterScenario()
-        {
-            var factory = _container.Resolve<TestWebFactory>();
-            factory.Dispose();
-        }
     }
 }
