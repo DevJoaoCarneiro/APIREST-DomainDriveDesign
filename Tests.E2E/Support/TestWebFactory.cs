@@ -34,13 +34,7 @@ public class TestWebFactory : WebApplicationFactory<Program>
             });
 
             services.RemoveAll<IEventProducer>();
-
             services.AddScoped<IEventProducer, FakeEventProducer>();
-
-            var sp = services.BuildServiceProvider();
-            using var scope = sp.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.EnsureCreated();
         });
     }
 }
