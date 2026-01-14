@@ -22,9 +22,6 @@ namespace Tests.E2E.Support
             var factory = new TestWebFactory();
             var client = factory.CreateClient();
 
-            using var scope = factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.EnsureCreated();
 
             _container.RegisterInstanceAs(client);
         }
