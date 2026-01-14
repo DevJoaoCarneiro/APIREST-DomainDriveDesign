@@ -26,7 +26,6 @@ namespace Tests.E2E.Support
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Database.EnsureCreated();
 
-            _container.RegisterInstanceAs(factory);
             _container.RegisterInstanceAs(client);
         }
     }
