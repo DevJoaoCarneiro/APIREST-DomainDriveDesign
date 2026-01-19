@@ -106,7 +106,7 @@ namespace Tests.E2E.Features
         
         private static global::Reqnroll.Formatters.RuntimeSupport.FeatureLevelCucumberMessages InitializeCucumberMessages()
         {
-            return new global::Reqnroll.Formatters.RuntimeSupport.FeatureLevelCucumberMessages("Features/CreateUser.feature.ndjson", 3);
+            return new global::Reqnroll.Formatters.RuntimeSupport.FeatureLevelCucumberMessages("Features/CreateUser.feature.ndjson", 4);
         }
         
         async global::System.Threading.Tasks.Task global::Xunit.IAsyncLifetime.InitializeAsync()
@@ -179,6 +179,48 @@ this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
 #line 15
     await testRunner.AndAsync("o campo \"Status\" deve ser \"Success\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "E ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [global::Xunit.SkippableFactAttribute(DisplayName="2. Erro no cadastro do usuario")]
+        [global::Xunit.TraitAttribute("FeatureTitle", "Cadastro de Usuario")]
+        [global::Xunit.TraitAttribute("Description", "2. Erro no cadastro do usuario")]
+        [global::Xunit.TraitAttribute("Category", "Falha")]
+        public async global::System.Threading.Tasks.Task _2_ErroNoCadastroDoUsuario()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "Falha"};
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
+            string pickleIndex = "1";
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("2. Erro no cadastro do usuario", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
+            string[] tagsOfRule = ((string[])(null));
+            global::Reqnroll.RuleInfo ruleInfo = null;
+#line 18
+this.ScenarioInitialize(scenarioInfo, ruleInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                await testRunner.SkipScenarioAsync();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 19
+    await testRunner.GivenAsync("que meu payload de usuario esta nulo", ((string)(null)), ((global::Reqnroll.Table)(null)), "Dado ");
+#line hidden
+#line 20
+    await testRunner.WhenAsync("eu envio os dados para cadastro", ((string)(null)), ((global::Reqnroll.Table)(null)), "Quando ");
+#line hidden
+#line 21
+    await testRunner.ThenAsync("o status da resposta deve ser 400", ((string)(null)), ((global::Reqnroll.Table)(null)), "Entao ");
+#line hidden
+#line 22
+    await testRunner.AndAsync("a mensagem deve ser \"Parameters is empty or null\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "E ");
+#line hidden
+#line 23
+    await testRunner.AndAsync("o campo \"Status\" deve ser \"invalid_argument\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "E ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

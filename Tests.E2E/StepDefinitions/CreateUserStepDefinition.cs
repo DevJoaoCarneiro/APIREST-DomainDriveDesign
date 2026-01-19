@@ -39,6 +39,12 @@ namespace Tests.E2E.StepDefinitions
             };
         }
 
+        [Given("que meu payload de usuario esta nulo")]
+        public void GivenQueEuTenhoOsSeguintesDadosDoUsuarioNulosOuVazio()
+        {
+            _userRequest = null;
+        }
+
         [When(@"eu envio os dados para cadastro")]
         public async Task WhenEuEnvioOsDadosParaCadastro()
         {
@@ -50,6 +56,9 @@ namespace Tests.E2E.StepDefinitions
         {
             if (statusCode == 200)
                 Assert.Equal("Success", _userResponse.Status);
+
+            if (statusCode == 400)
+                Assert.Equal("invalid_argument", _userResponse.Status);
         }
 
         [Then(@"a mensagem deve ser ""(.*)""")]

@@ -13,3 +13,12 @@ Cenario: 1. Cadastro com sucesso
     Entao o status da resposta deve ser 200
     E a mensagem deve ser "User created successfully"
     E o campo "Status" deve ser "Success"
+
+@Falha
+Cenario: 2. Erro no cadastro do usuario
+    Dado que meu payload de usuario esta nulo
+    Quando eu envio os dados para cadastro
+    Entao o status da resposta deve ser 400
+    E a mensagem deve ser "Parameters is empty or null"
+    E o campo "Status" deve ser "invalid_argument" 
+     
